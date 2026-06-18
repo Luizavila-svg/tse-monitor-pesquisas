@@ -726,7 +726,62 @@ def run():
 
     save_state(state)
     log.info("Relatório gerado em %s", INDEX_FILE)
+
+    # Publica no GitHub Pages (se repositório git configurado)
+    if not CI_MODE:
+        publish_to_github(today)
+
     log.info("═══ Concluído ═══")
+
+
+def publish_to_github(today: str):
+    """Publica reports/ no branch gh-pages do GitHub."""
+    import subprocess
+    import tempfile
+    import shutil
+
+    repo_url = "https://github.com/Luizavila-svg/tse-monitor-pesquisas.git"
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            log.info("Publicando relatório no GitHub Pages…")
+
+            # Clona apenas o branch gh-pages (raso, mais rápido)
+            subprocess.run(
+                ["git", "clone", "--depth=1", "--branch=gh-pages", repo_url, tmpdir],
+                check=True, capture_output=True
+            )
+
+            # Copia os arquivos gerados
+            shutil.copy(INDEX_FILE, Path(tmpdir) / "index.html")
+            archive_dst = Path(tmpdir) / "archive"
+            archive_dst.mkdir(exist_ok=True)
+            for f in ARCHIVE_DIR.glob("*.html"):
+                shutil.copy(f, archive_dst / f.name)
+            pdfs_dst = Path(tmpdir) / "pdfs"
+            pdfs_dst.mkdir(exist_ok=True)
+            for f in PDFS_DIR.glob("*.pdf"):
+                shutil.copy(f, pdfs_dst / f.name)
+
+            # Commit e push
+            subprocess.run(["git", "config", "user.email", "avila.avila.luiz@gmail.com"], cwd=tmpdir, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "Luizavila-svg"], cwd=tmpdir, check=True, capture_output=True)
+            subprocess.run(["git", "add", "-A"], cwd=tmpdir, check=True, capture_output=True)
+            result = subprocess.run(
+                ["git", "commit", "-m", f"Relatório {today}"],
+                cwd=tmpdir, capture_output=True
+            )
+            if result.returncode == 0:
+                subprocess.run(["git", "push", "origin", "gh-pages"], cwd=tmpdir, check=True, capture_output=True)
+                log.info("Publicado em https://luizavila-svg.github.io/tse-monitor-pesquisas/")
+            else:
+                log.info("Sem mudanças para publicar.")
+
+    except subprocess.CalledProcessError as e:
+        log.warning("Erro ao publicar no GitHub: %s", e)
+    except Exception as e:
+        log.warning("Publicação ignorada: %s", e)
+
 
 if __name__ == "__main__":
     run()
