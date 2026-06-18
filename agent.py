@@ -42,7 +42,7 @@ TSE_QST_URL = "https://cdn.tse.jus.br/estatistica/sead/odsele/pesquisa_eleitoral
 CSV_ZIP     = DATA_DIR / "pesquisa_eleitoral_2026.zip"
 QST_ZIP     = DATA_DIR / "questionario_2026.zip"
 
-DAYS_BACK = 1  # pesquisas registradas nas últimas N*24h
+DAYS_BACK = 2  # pesquisas registradas nas últimas N*24h
 CI_MODE   = os.environ.get("CI", "false").lower() == "true"
 
 logging.basicConfig(
