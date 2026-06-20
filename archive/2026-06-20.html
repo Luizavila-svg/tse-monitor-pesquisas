@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="refresh" content="300">
   <title>Monitor TSE · Pesquisas Eleitorais</title>
   <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -249,10 +248,10 @@ footer a { color: #0f3460; }
 <body>
 <header>
   <h1>Monitor de Pesquisas Eleitorais — TSE</h1>
-  <p class="subtitle">Eleições 2026 · Atualizado em 20/06/2026 às 00:15</p>
+  <p class="subtitle">Eleições 2026 · Atualizado em 20/06/2026 às 00:38</p>
   <div class="badge">9 pesquisas registradas nas últimas 24h</div>
 </header>
-<div class="archive-bar">Relatórios anteriores: <a href="archive/2026-06-18.html">2026-06-18</a></div>
+<div class="archive-bar">Relatórios anteriores: <a href="archive/2026-06-20.html">2026-06-20</a> | <a href="archive/2026-06-18.html">2026-06-18</a></div>
 
 <div class="filters">
   <label>Filtros:</label>
@@ -1802,10 +1801,27 @@ que se declaram trans influencia a sua decisão?
   <a href="https://pesqele-divulgacao.tse.jus.br/" target="_blank">Sistema PesqEle</a>
 </footer>
 <script>
+var PAGE_SIGNATURE = null;
+
+function getFilterElements() {
+    return {
+        uf: document.getElementById('f-uf'),
+        cargo: document.getElementById('f-cargo'),
+        txt: document.getElementById('f-txt'),
+        clear: document.getElementById('btn-clear')
+    };
+}
+
 function filterCards() {
-    var uf = document.getElementById('f-uf').value.toLowerCase();
-    var cargo = document.getElementById('f-cargo').value.toLowerCase();
-    var txt = document.getElementById('f-txt').value.toLowerCase();
+    var elements = getFilterElements();
+    if (!elements.uf || !elements.cargo || !elements.txt) {
+        return;
+    }
+
+    var uf = elements.uf.value.toLowerCase();
+    var cargo = elements.cargo.value.toLowerCase();
+    var txt = elements.txt.value.toLowerCase();
+
     document.querySelectorAll('.card').forEach(function(card) {
         var cardUf = card.dataset.uf || '';
         var cardCargo = card.dataset.cargo || '';
@@ -1816,15 +1832,56 @@ function filterCards() {
         card.style.display = show ? '' : 'none';
     });
 }
-document.getElementById('f-uf').addEventListener('change', filterCards);
-document.getElementById('f-cargo').addEventListener('change', filterCards);
-document.getElementById('f-txt').addEventListener('input', filterCards);
-document.getElementById('btn-clear').addEventListener('click', function() {
-    document.getElementById('f-uf').value = '';
-    document.getElementById('f-cargo').value = '';
-    document.getElementById('f-txt').value = '';
-    filterCards();
-});
+
+function bindFilters() {
+    var elements = getFilterElements();
+    if (!elements.uf || !elements.cargo || !elements.txt || !elements.clear) {
+        return;
+    }
+
+    elements.uf.addEventListener('change', filterCards);
+    elements.cargo.addEventListener('change', filterCards);
+    elements.txt.addEventListener('input', filterCards);
+    elements.clear.addEventListener('click', function() {
+        elements.uf.value = '';
+        elements.cargo.value = '';
+        elements.txt.value = '';
+        filterCards();
+    });
+}
+
+function buildSignature(response) {
+    var lm = response.headers.get('last-modified') || '';
+    var cl = response.headers.get('content-length') || '';
+    return lm + '|' + cl;
+}
+
+function checkForUpdate() {
+    var url = window.location.pathname + '?_check=' + Date.now();
+    fetch(url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(response) {
+            if (!response.ok) {
+                return;
+            }
+
+            var sig = buildSignature(response);
+            if (!PAGE_SIGNATURE) {
+                PAGE_SIGNATURE = sig;
+                return;
+            }
+
+            if (sig && sig !== PAGE_SIGNATURE) {
+                window.location.reload();
+            }
+        })
+        .catch(function() {
+            // Erros de rede momentâneos são ignorados; a próxima checagem tenta de novo.
+        });
+}
+
+bindFilters();
+checkForUpdate();
+setInterval(checkForUpdate, 60000);
 </script>
 </body>
 </html>
