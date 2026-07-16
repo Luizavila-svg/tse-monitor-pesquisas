@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Monitor TSE · Pesquisas Eleitorais</title>
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f4f5f7;
+    color: #1a1a2e;
+    line-height: 1.6;
+}
+header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+}
+header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+header .subtitle { opacity: .75; margin-top: .4rem; font-size: .95rem; }
+header .badge {
+    display: inline-block;
+    background: #e94560;
+    color: white;
+    border-radius: 20px;
+    padding: .25rem .9rem;
+    font-size: .9rem;
+    font-weight: 600;
+    margin-top: .8rem;
+}
+.filters {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    padding: 1.2rem 2rem;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.filters label { font-size: .85rem; font-weight: 600; color: #555; align-self: center; }
+.filters select, .filters input {
+    padding: .4rem .7rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: .9rem;
+    background: white;
+    cursor: pointer;
+}
+.filters button {
+    padding: .4rem 1rem;
+    background: #0f3460;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .9rem;
+}
+.main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+}
+.card-header {
+    background: #0f3460;
+    color: white;
+    padding: .9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+.protocolo {
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    background: rgba(255,255,255,.15);
+    padding: .2rem .6rem;
+    border-radius: 4px;
+}
+.cargo {
+    font-weight: 600;
+    font-size: 1rem;
+    flex: 1;
+}
+.uf {
+    background: #e94560;
+    padding: .2rem .7rem;
+    border-radius: 20px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+.dt-registro {
+    font-size: .8rem;
+    opacity: .75;
+    margin-left: auto;
+}
+.empresa {
+    padding: .75rem 1.25rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+@media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+.field {
+    padding: .9rem 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid #f0f0f0;
+}
+.field:nth-child(even) { border-right: none; }
+.field label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #888;
+    margin-bottom: .25rem;
+}
+.field p { font-size: .9rem; color: #333; }
+.full-width { grid-column: 1 / -1; border-right: none; }
+.questions-section {
+    padding: 1rem 1.25rem;
+    border-top: 2px solid #e94560;
+    background: #fffbf8;
+}
+.questions-section h4 {
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #e94560;
+    margin-bottom: .75rem;
+}
+.questions-text {
+    font-size: .88rem;
+    line-height: 1.7;
+    color: #333;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: .75rem 1rem;
+}
+.plano-amostral {
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: .3rem;
+    background: white;
+}
+.pa-cat {
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: #0f3460;
+    background: #f0f4ff;
+    border-left: 3px solid #e94560;
+    padding: .35rem .75rem;
+    margin: .6rem 0 .15rem;
+    border-radius: 0 4px 4px 0;
+}
+.pa-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .5rem;
+    padding: .25rem .75rem;
+    font-size: .87rem;
+    border-bottom: 1px solid #f5f5f5;
+}
+.pa-label { color: #444; flex: 1; }
+.pa-value { font-weight: 600; color: #0f3460; white-space: nowrap; }
+.pa-item-plain {
+    padding: .25rem .75rem;
+    font-size: .87rem;
+    color: #444;
+    border-bottom: 1px solid #f5f5f5;
+}
+.pa-text {
+    padding: .3rem .75rem;
+    font-size: .87rem;
+    color: #555;
+    line-height: 1.55;
+}
+.pdf-link {
+    display: inline-block;
+    margin-top: .5rem;
+    padding: .4rem .9rem;
+    background: #0f3460;
+    color: white;
+    border-radius: 6px;
+    font-size: .85rem;
+    text-decoration: none;
+    font-weight: 600;
+}
+.pdf-link:hover { background: #16213e; }
+.no-questions {
+    font-size: .85rem;
+    color: #999;
+    font-style: italic;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #f0f0f0;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #888;
+    font-size: 1.1rem;
+}
+footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: .85rem;
+    color: #888;
+    border-top: 1px solid #eee;
+    background: white;
+    margin-top: 2rem;
+}
+footer a { color: #0f3460; }
+.archive-bar {
+    background: white;
+    border-bottom: 1px solid #eee;
+    padding: .6rem 2rem;
+    font-size: .85rem;
+    color: #555;
+}
+.archive-bar a { color: #0f3460; margin-right: .75rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Monitor de Pesquisas Eleitorais — TSE</h1>
+  <p class="subtitle">Eleições 2026 · Atualizado em 12/07/2026 às 10:01</p>
+  <div class="badge">15 pesquisas registradas nas últimas 24h</div>
+</header>
+<div class="archive-bar">Relatórios anteriores: <a href="archive/2026-07-08.html">2026-07-08</a> | <a href="archive/2026-07-05.html">2026-07-05</a> | <a href="archive/2026-06-20.html">2026-06-20</a> | <a href="archive/2026-06-18.html">2026-06-18</a></div>
+
+<div class="filters">
+  <label>Filtros:</label>
+  <select id="f-uf"><option value="">Todos os estados</option><option value="br">BR</option><option value="es">ES</option><option value="mt">MT</option><option value="pe">PE</option><option value="ro">RO</option><option value="se">SE</option><option value="sp">SP</option></select>
+  <select id="f-cargo"><option value="">Todos os cargos</option><option value="deputado federal, deputado estadual">Deputado Federal, Deputado Estadual</option><option value="governador, senador">Governador, Senador</option><option value="governador, senador, deputado federal, deputado estadual">Governador, Senador, Deputado Federal, Deputado Estadual</option><option value="presidente">Presidente</option></select>
+  <input id="f-txt" type="search" placeholder="Buscar texto…" style="flex:1;min-width:140px;">
+  <button id="btn-clear">Limpar</button>
+</div>
+<div class="main">
+
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR018772026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 23:57</span>
+  </div>
+  <div class="empresa">#NULO#</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa com aplicação de questionários estruturados através de entrevistas pessoais domiciliares junto a uma amostra aleatória, proporcional e representativa do eleitorado do Município de SÃO CARLOS, com 16 anos ou mais. Amostra estratificada por sexo, faixa etária e região geográfica através de sistema de cotas pré-definidas.  Fontes públicas dos dados utilizados para elaboração da amostra: Censo IBGE 2022 e Tribunal Superior Eleitoral.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">Entrevistas a serem aplicadas dentro dos seguintes parâmetros: percentuais de sexo - Feminino: 52,7%.</div>
+<div class="pa-item"><span class="pa-label">Masculino</span><span class="pa-value">47,3%</span></div>
+<div class="pa-item"><span class="pa-label">Percentuais quanto a faixa etária</span><span class="pa-value">16 a 24 anos: 10,8%. 25 a 34 anos: 17,3%. 35 a 44 anos: 19,5%. 45 a 59 anos: 26,1%. 60 anos ou mais: 26,3%. Percentuais de referência em relação ao nível econômico: Até 1 S.M.: 41,5%. Mais de 1 a 2 S.M.: 31,5%. Mais de 2 a 5 S.M.: 21,0%. Mais de 5 S.M.: 6,0%. Percentuais de referência quanto ao grau de instrução: Até fundamental completo: 26,2%</span></div>
+<div class="pa-item"><span class="pa-label">Médio incompleto e completo</span><span class="pa-value">50,5%</span></div>
+<div class="pa-item"><span class="pa-label">Superior incompleto ou mais</span><span class="pa-value">23,3%. Está prevista ponderação para as variáveis socioeconômicas casos ocorram variações acima de 3 pontos percentuais em relação aos valores de referência. Fontes públicas dos dados utilizados para elaboração da amostra: Censo IBGE 2022 e Tribunal Superior Eleitoral. A margem de erro para o total da amostra é de 4,9% (quatro ponto nove pontos percentuais), para mais ou para menos, calculada considerando-se um coeficiente de confiança de 95% (noventa e cinco por cento)</span></div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>As equipes de campo têm em seus quadros supervisores que acompanham e checam a aplicação dos questionários in-loco como também a obediência às cotas pré-definidas; sua função é atestar a fidelidade das respostas obtidas pelos pesquisadores e garantir o rigor metodológico na aplicação dos formulários. Sistema Interno de Verificação: através da utilização de software específico, são aplicados testes para averiguar a consistência dos resultados obtidos. Após os testes de consistência, é verificada, no mínimo, 30% da amostra coletada.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>Será complementado no prazo previsto na Resolução-TSE n° 23.600/2019</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>400</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>HELOISA RODRIGUES BARBOSA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>12/07/2026 a 15/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="sp" data-cargo="governador, senador, deputado federal, deputado estadual">
+  <div class="card-header">
+    <span class="protocolo">SP041872026</span>
+    <span class="cargo">Governador, Senador, Deputado Federal, Deputado Estadual</span>
+    <span class="uf">SP</span>
+    <span class="dt-registro">Registrado: 2026-07-10 23:48</span>
+  </div>
+  <div class="empresa">#NULO#</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa com aplicação de questionários estruturados através de entrevistas pessoais domiciliares junto a uma amostra aleatória, proporcional e representativa do eleitorado do Município de SÃO CARLOS, com 16 anos ou mais. Amostra estratificada por sexo, faixa etária e região geográfica através de sistema de cotas pré-definidas.  Fontes públicas dos dados utilizados para elaboração da amostra: Censo IBGE 2022 e Tribunal Superior Eleitoral.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">Entrevistas a serem aplicadas dentro dos seguintes parâmetros: percentuais de sexo - Feminino: 52,7%.</div>
+<div class="pa-item"><span class="pa-label">Masculino</span><span class="pa-value">47,3%</span></div>
+<div class="pa-item"><span class="pa-label">Percentuais quanto a faixa etária</span><span class="pa-value">16 a 24 anos: 10,8%. 25 a 34 anos: 17,3%. 35 a 44 anos: 19,5%. 45 a 59 anos: 26,1%. 60 anos ou mais: 26,3%. Percentuais de referência em relação ao nível econômico: Até 1 S.M.: 41,5%. Mais de 1 a 2 S.M.: 31,5%. Mais de 2 a 5 S.M.: 21,0%. Mais de 5 S.M.: 6,0%. Percentuais de referência quanto ao grau de instrução: Até fundamental completo: 26,2%</span></div>
+<div class="pa-item"><span class="pa-label">Médio incompleto e completo</span><span class="pa-value">50,5%</span></div>
+<div class="pa-item"><span class="pa-label">Superior incompleto ou mais</span><span class="pa-value">23,3%. Está prevista ponderação para as variáveis socioeconômicas casos ocorram variações acima de 3 pontos percentuais em relação aos valores de referência. Fontes públicas dos dados utilizados para elaboração da amostra: Censo IBGE 2022 e Tribunal Superior Eleitoral. A margem de erro para o total da amostra é de 4,9% (quatro ponto nove pontos percentuais), para mais ou para menos, calculada considerando-se um coeficiente de confiança de 95% (noventa e cinco por cento)</span></div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>As equipes de campo têm em seus quadros supervisores que acompanham e checam a aplicação dos questionários in-loco como também a obediência às cotas pré-definidas; sua função é atestar a fidelidade das respostas obtidas pelos pesquisadores e garantir o rigor metodológico na aplicação dos formulários. Sistema Interno de Verificação: através da utilização de software específico, são aplicados testes para averiguar a consistência dos resultados obtidos. Após os testes de consistência, é verificada, no mínimo, 30% da amostra coletada.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>Será complementado no prazo previsto na Resolução-TSE n° 23.600/2019</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>400</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>HELOISA RODRIGUES BARBOSA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>12/07/2026 a 15/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR062362026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 21:16</span>
+  </div>
+  <div class="empresa">ECM-PESQUISAS</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>A pesquisa caracteriza-se como um estudo científico quantitativo, de natureza amostral, realizado por meio de entrevistas pessoais domiciliares, sem utilização de pontos de fluxo. A coleta de dados foi realizada mediante aplicação de questionário estruturado a uma amostra representativa do eleitorado sergipano, abrangendo municípios de diferentes regiões do Estado, garantindo cobertura territorial e representatividade estatística da amostra.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">A pesquisa foi fundamentada nos princípios da Teoria da Amostragem e planejada para representar o eleitorado da área em estudo, com base nos dados do cadastro eleitoral do TSE atualizados até abril de 2026. O plano amostral foi elaborado em três estágios. No primeiro estágio, os municípios foram selecionados por sorteio probabilístico, respeitando as regiões do estado, utilizando o método de Probabilidade Proporcional ao Tamanho (PPT), tendo como referência a população eleitora com 16 anos ou mais. No segundo estágio, foram sorteadas as localidades de coleta dentro dos municípios selecionados, também pelo método PPT. No terceiro estágio, os entrevistados foram selecionados por meio de quotas amostrais proporcionais, definidas de acordo com variáveis demográficas (Fonte: TSE) e socioeconômicas relevantes (Fonte: IBGE), visando reproduzir a composição do eleitorado pesquisado. Dessa forma, a amostra combina seleção probabilística dos pontos de coleta e seleção por quotas dos entrevistados, garantindo representatividade dos diferentes segmentos da população. As categorias demográficas foram estratificadas e os percentuais apresentados a seguir: GÊNERO: Feminino 53,22%; Masculino 46,78%.</div>
+<div class="pa-cat">Faixa Etária</div>
+<div class="pa-item-plain">Feminino (16 anos 0,43%</div>
+<div class="pa-item-plain">17 anos 0,86%</div>
+<div class="pa-item-plain">18 anos 1,37%</div>
+<div class="pa-item-plain">19 anos 1,63%</div>
+<div class="pa-item-plain">20 anos 1,74%</div>
+<div class="pa-item-plain">21 a 24 anos 7,16%</div>
+<div class="pa-item-plain">25 a 29 anos 10,23%</div>
+<div class="pa-item-plain">30 a 34 anos 10,11%</div>
+<div class="pa-item-plain">35 a 39 anos 10,09%</div>
+<div class="pa-item-plain">40 a 44 anos 10,37%</div>
+<div class="pa-item-plain">45 a 49 anos 9,56%</div>
+<div class="pa-item-plain">50 a 54 anos 8,26%</div>
+<div class="pa-item-plain">55 a 59 anos 7,48%</div>
+<div class="pa-item-plain">60 a 64 anos 6,35%</div>
+<div class="pa-item-plain">65 a 69 anos 4,81%</div>
+<div class="pa-item-plain">70 a 74 anos 3,72%</div>
+<div class="pa-item-plain">75 a 79 anos 2,68%</div>
+<div class="pa-item-plain">80 a 84 anos 1,70%</div>
+<div class="pa-item-plain">85 a 89 anos 0,86%</div>
+<div class="pa-item-plain">90 a 94 anos 0,36%</div>
+<div class="pa-item-plain">95 a 99 anos 0,10%</div>
+<div class="pa-item-plain">100 anos ou mais 0,03%). Masculino (16 anos 0,43%</div>
+<div class="pa-item-plain">17 anos 0,91%</div>
+<div class="pa-item-plain">18 anos 1,56%</div>
+<div class="pa-item-plain">19 anos 1,86%</div>
+<div class="pa-item-plain">20 anos 1,97%</div>
+<div class="pa-item-plain">21 a 24 anos 7,82%</div>
+<div class="pa-item-plain">25 a 29 anos 10,73%</div>
+<div class="pa-item-plain">30 a 34 anos 10,30%</div>
+<div class="pa-item-plain">35 a 39 anos 10,16%</div>
+<div class="pa-item-plain">40 a 44 anos 10,43%</div>
+<div class="pa-item-plain">45 a 49 anos 9,51%</div>
+<div class="pa-item-plain">50 a 54 anos 8,18%</div>
+<div class="pa-item-plain">55 a 59 anos 7,33%</div>
+<div class="pa-item-plain">60 a 64 anos 6,11%</div>
+<div class="pa-item-plain">65 a 69 anos 4,54%</div>
+<div class="pa-item-plain">70 a 74 anos 3,34%</div>
+<div class="pa-item-plain">75 a 79 anos 2,33%</div>
+<div class="pa-item-plain">80 a 84 anos 1,39%</div>
+<div class="pa-item-plain">85 a 89 anos 0,66%</div>
+<div class="pa-item-plain">90 a 94 anos 0,25%</div>
+<div class="pa-item-plain">95 a 99 anos 0,08%</div>
+<div class="pa-item-plain">100 anos ou mais 0,03%)</div>
+<div class="pa-cat">Grau De Instrução</div>
+<div class="pa-item-plain">Feminino (Analfabeto 4,60%</div>
+<div class="pa-item-plain">Ensino Fundamental Completo 4,00%</div>
+<div class="pa-item-plain">Ensino Fundamental Incompleto 25,68%</div>
+<div class="pa-item-plain">Ensino Médio Completo 23,89%</div>
+<div class="pa-item-plain">Ensino Médio Incompleto 18,91%</div>
+<div class="pa-item-plain">Lê e Escreve 8,18%</div>
+<div class="pa-item-plain">Superior Completo 9,24%</div>
+<div class="pa-item-plain">Superior Incompleto 5,49%</div>
+<div class="pa-item-plain">Masculino (Analfabeto 5,56%</div>
+<div class="pa-item-plain">Ensino Fundamental Completo 4,30%</div>
+<div class="pa-item-plain">Ensino Fundamental Incompleto 30,28%</div>
+<div class="pa-item-plain">Ensino Médio Completo 20,22%</div>
+<div class="pa-item-plain">Ensino Médio Incompleto 19,09%</div>
+<div class="pa-item-plain">Lê e Escreve 9,85%</div>
+<div class="pa-item-plain">Superior Completo 5,68%</div>
+<div class="pa-item-plain">Superior Incompleto 5,02%</div>
+<div class="pa-cat">Nível Econõmico</div>
+<div class="pa-item-plain">Sem rendimento (4,99%)</div>
+<div class="pa-item-plain">até 1 salário mínimo (32,38%)</div>
+<div class="pa-item-plain">Mais de 1 a 2 salários mínimos (26,98%)</div>
+<div class="pa-item-plain">Mais de 2 a 5 salários mínimos (22,74%)</div>
+<div class="pa-item-plain">Mais de 5 a 10 salários mínimos (7,90%)</div>
+<div class="pa-item-plain">Mais de 10 a 20 salários mínimos (3,48%)</div>
+<div class="pa-item-plain">Mais de 20 salários mínimos (1,53%). A soma dos percentuais poderá não totalizar exatamente 100% em razão dos arredondamentos decorrentes da apresentação dos resultados com casas decimais</div>
+<div class="pa-item"><span class="pa-label">Dados obtidos para nível econômico</span><span class="pa-value">https://cidades.ibge.gov.br/brasil/se/pesquisa/23/24304. A amostra a ser aplicada é de tamanho 1.500 (Mil e quinhentos). O nível de confiança é de 95% e a margem de erro máxima estimada considerando um modelo de amostragem aleatório simples, é de 2,53 pontos percentuais para mais ou para menos sobre os resultados encontrados no total da amostra</span></div>
+<div class="pa-cat">Fonte Dos Dados</div>
+<div class="pa-item-plain">TSE (Tribunal Superior Eleitoral) e IBGE (Instituto Brasileiro de Geografia e Estatística)</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>A pesquisa é realizada por entrevistadores, supervisor e estatístico. Os entrevistadores são devidamente treinados para conduzir as entrevistas de uma forma clara e imparcial. O supervisor desempenha o papel de garantir que a coleta dos dados seja feita de forma precisa e ética, além disso, incorporamos o acompanhamento da coleta on-line. Após os trabalhos de campo, os aplicativos de coleta dos dados são submetidos a uma fiscalização pelo supervisor e pelo estatístico, de cerca de 20% (vinte por cento) dos questionários aplicados pelos entrevistadores, para verificação das respostas. Findo esse processo os questionários vão para a organização do banco de dados em software estatístico a fim de que se prepare o relatório final de resultados para divulgação</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>Pesquisa realizada nos municípios do estado de Sergipe: Aracaju, Barra dos Coqueiros, Itaporanga d'Ajuda, Laranjeiras, Nossa Senhora do Socorro, São Cristóvão, Boquim, Estância, Itabaianinha, Salgado, Umbaúba, Lagarto, Poço Verde, Riachão do Dantas, Simão Dias, Tobias Barreto, Canindé de São Francisco, Nossa Senhora da Glória, Poço Redondo, Porto da Folha, Itabaiana, Areia Branca, Ribeirópolis, Propriá, Muribeca, Capela, Carmópolis, Rosário do Catete, Aquidabã, Nossa Senhora das Dores.
+</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1500</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>FLAVIO FERREIRA DA CONCEICAO</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>11/07/2026 a 14/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR000592026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 20:51</span>
+  </div>
+  <div class="empresa">PODERDATA</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa por amostragem. Aplicação de questionário estruturado por meio de ligações automatizadas para telefones fixos e celulares. O universo da pesquisa é o conjunto de eleitoras e eleitores com 16 anos ou mais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-item"><span class="pa-label">Universo</span><span class="pa-value">eleitoras e eleitores com 16 anos de idade ou mais</span></div>
+<div class="pa-item"><span class="pa-label">Tamanho da amostra</span><span class="pa-value">2.400 entrevistas</span></div>
+<div class="pa-item"><span class="pa-label">Técnica de amostragem</span><span class="pa-value">amostra aleatória simples a partir de banco de dados de números telefônicos fixos e celulares. A amostra é estratificada por região geográfica com base no CEP associado a cada número telefônico. Na apresentação final do resultado da pesquisa os dados serão ponderados com base nos percentuais mencionados abaixo, caso ocorram diferenças entre os percentuais previstos na amostra e a coleta de dados realizada</span></div>
+<div class="pa-item"><span class="pa-label">Fonte pública dos dados</span><span class="pa-value">TSE (junho 2026) e IBGE (Censo 2010). Conforme informações obtidas do Instituto Brasileiro de Geografia e Estatística, o IBGE não divulgou ¿ e não tem previsão de data para divulgação do perfil econômico da população brasileira; portanto, os dados quanto ao nível econômico obtidos no Censo 2022 não podem ser utilizados, pois não foram publicados (https://censo2022.ibge.gov.br/panorama/)</span></div>
+<div class="pa-item"><span class="pa-label">Os números relativos a sexo e faixa etária são</span><span class="pa-value">Masculino: 47,2%</span></div>
+<div class="pa-item"><span class="pa-label">Feminino</span><span class="pa-value">52,8%. (Fonte: TSE ¿ Perfil do eleitorado mensal ¿ junho de 2026: https://sig.tse.jus.br/ords/dwapr/r/seai/sig-eleitor-eleitorado-mensal/cruzamento-eleitorado-mensal?p24_metricas=E&amp;p24_back=22&amp;p24_cruzamento_1=ds_sexo&amp;clear=24&amp;session=105921115404841)</span></div>
+<div class="pa-item"><span class="pa-label">Para a distribuição por faixa etária, os dados são</span><span class="pa-value">16 a 24 anos, 13%; 25 a 44 anos, 39%; 45 a 59 anos, 25%; 60 anos ou mais, 23%. (Fonte: TSE ¿ Perfil do eleitorado mensal ¿ junho de 2026: https://sig.tse.jus.br/ords/dwapr/r/seai/sig-eleitor-eleitorado-mensal/cruzamento-eleitorado-mensal?p24_cruzamento_1=ds_faixa_etaria&amp;p24_metricas=E&amp;p24_back=22&amp;clear=24&amp;session=105921115404841)</span></div>
+<div class="pa-item"><span class="pa-label">Para a distribuição por nível de instrução, os dados são</span><span class="pa-value">De analfabeto até ensino fundamental completo, 37,0%; Ensino médio completo ou incompleto, 46,1%; Ensino superior completo ou incompleto, 16,9%</span></div>
+<div class="pa-item"><span class="pa-label">Fonte</span><span class="pa-value">TSE ¿ Perfil do eleitorado mensal ¿ junho de 2026: https://sig.tse.jus.br/ords/dwapr/r/seai/sig-eleitor-eleitorado-mensal/cruzamento-eleitorado-mensal?p24_cruzamento_1=ds_grau_instrucao&amp;p24_metricas=E&amp;p24_back=22&amp;clear=24&amp;session=105921115404841)</span></div>
+<div class="pa-item"><span class="pa-label">Para a distribuição por regiões geográficas serão</span><span class="pa-value">Centro-Oeste: 8%</span></div>
+<div class="pa-item"><span class="pa-label">Nordeste</span><span class="pa-value">28%</span></div>
+<div class="pa-item"><span class="pa-label">Norte</span><span class="pa-value">8%</span></div>
+<div class="pa-item"><span class="pa-label">Sudeste</span><span class="pa-value">42%; Sul: 14%. (Fonte: TSE ¿ Perfil do eleitorado mensal ¿ maio de 2026: https://sig.tse.jus.br/ords/dwapr/r/seai/sig-eleitor-eleitorado-mensal/perfil-do-eleitorado-mensal?session=216119510728237)</span></div>
+<div class="pa-item"><span class="pa-label">Para a distribuição por renda</span><span class="pa-value">Sem rendimentos até 2 SM: 45,8%, de mais de 2 a 5 SM: 32,9%, de mais de 5 SM: 21,3%. (Fonte: IBGE ¿ Censo 2010 - https://cidades.ibge.gov.br/brasil/pesquisa/23/24304?detalhes=true)</span></div>
+<div class="pa-text">Serão realizadas entrevistas nas seguintes unidades da Federação: Acre, Alagoas, Amazonas, Amapá, Bahia, Ceará, Distrito Federal, Espírito Santo, Goiás, Maranhão, Minas Gerais, Mato Grosso, Mato Grosso do Sul, Pará, Paraíba, Paraná, Pernambuco, Piauí, Rio de Janeiro, Rio Grande do Norte, Rio Grande do Sul, Rondônia, Roraima, Santa Catarina, São Paulo, Sergipe e Tocantins. A relação completa dos municípios pesquisados será encaminhada a este tribunal após a realização da pesquisa, conforme a Resolução 23.600/2019 do TSE.</div>
+<div class="pa-item"><span class="pa-label">Margem de Erro</span><span class="pa-value">A margem de erro máxima prevista é de 2 pontos percentuais para mais ou para menos. Os intervalos de confiança serão calculados considerando os resultados obtidos para um nível de confiança de 95%</span></div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>A coleta dos dados será conduzida por uma equipe de supervisores devidamente qualificados pelo PoderData, todos com experiência e treinamento específico em pesquisas de opinião pública.
+Controle: O controle do processo será realizado por meio de um software de coleta de dados, o qual permitirá o monitoramento garantindo o cumprimento das cotas amostrais. Apenas questionários respondidos por completo são considerados, os demais são descartados.
+Conferência e Fiscalização: Durante a coleta de dados os questionários aplicados são fiscalizados e conferidos através de um supervisor. Adicionalmente, pelo menos 30% dos questionários passarão por uma verificação posterior, que avaliará a precisão na aplicação e a adequação dos entrevistados às variáveis das quotas amostrais. Ou seja, no mínimo 720 entrevistas desta pesquisa serão auditadas pela equipe de qualidade do PoderData, podendo essa auditoria ser solicitada a qualquer momento.
+Verificação: Após a coleta, os questionários passam por uma etapa de verificação e validação dos dados, para garantir a integridade e precisão dos dados coletados.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>A área de abrangência da coleta é nacional. A relação dos municípios selecionados para a pesquisa constará em anexo a ser apresentado após a realização da pesquisa conforme o art. 2º, §7º da Resolução 23.600/2019 do TSE.</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>2400</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>Anderson Silva de Macedo</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>12/07/2026 a 15/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="se" data-cargo="governador, senador, deputado federal, deputado estadual">
+  <div class="card-header">
+    <span class="protocolo">SE047182026</span>
+    <span class="cargo">Governador, Senador, Deputado Federal, Deputado Estadual</span>
+    <span class="uf">SE</span>
+    <span class="dt-registro">Registrado: 2026-07-10 20:45</span>
+  </div>
+  <div class="empresa">ECM-PESQUISAS</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>A pesquisa caracteriza-se como um estudo científico quantitativo, de natureza amostral, realizado por meio de entrevistas pessoais domiciliares, sem utilização de pontos de fluxo. A coleta de dados foi realizada mediante aplicação de questionário estruturado a uma amostra representativa do eleitorado sergipano, abrangendo municípios de diferentes regiões do Estado, garantindo cobertura territorial e representatividade estatística da amostra.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">A pesquisa foi fundamentada nos princípios da Teoria da Amostragem e planejada para representar o eleitorado da área em estudo, com base nos dados do cadastro eleitoral do TSE atualizados até abril de 2026. O plano amostral foi elaborado em três estágios. No primeiro estágio, os municípios foram selecionados por sorteio probabilístico, respeitando as regiões do estado, utilizando o método de Probabilidade Proporcional ao Tamanho (PPT), tendo como referência a população eleitora com 16 anos ou mais. No segundo estágio, foram sorteadas as localidades de coleta dentro dos municípios selecionados, também pelo método PPT. No terceiro estágio, os entrevistados foram selecionados por meio de quotas amostrais proporcionais, definidas de acordo com variáveis demográficas (Fonte: TSE) e socioeconômicas relevantes (Fonte: IBGE), visando reproduzir a composição do eleitorado pesquisado. Dessa forma, a amostra combina seleção probabilística dos pontos de coleta e seleção por quotas dos entrevistados, garantindo representatividade dos diferentes segmentos da população. As categorias demográficas foram estratificadas e os percentuais apresentados a seguir: GÊNERO: Feminino 53,22%; Masculino 46,78%.</div>
+<div class="pa-cat">Faixa Etária</div>
+<div class="pa-item-plain">Feminino (16 anos 0,43%</div>
+<div class="pa-item-plain">17 anos 0,86%</div>
+<div class="pa-item-plain">18 anos 1,37%</div>
+<div class="pa-item-plain">19 anos 1,63%</div>
+<div class="pa-item-plain">20 anos 1,74%</div>
+<div class="pa-item-plain">21 a 24 anos 7,16%</div>
+<div class="pa-item-plain">25 a 29 anos 10,23%</div>
+<div class="pa-item-plain">30 a 34 anos 10,11%</div>
+<div class="pa-item-plain">35 a 39 anos 10,09%</div>
+<div class="pa-item-plain">40 a 44 anos 10,37%</div>
+<div class="pa-item-plain">45 a 49 anos 9,56%</div>
+<div class="pa-item-plain">50 a 54 anos 8,26%</div>
+<div class="pa-item-plain">55 a 59 anos 7,48%</div>
+<div class="pa-item-plain">60 a 64 anos 6,35%</div>
+<div class="pa-item-plain">65 a 69 anos 4,81%</div>
+<div class="pa-item-plain">70 a 74 anos 3,72%</div>
+<div class="pa-item-plain">75 a 79 anos 2,68%</div>
+<div class="pa-item-plain">80 a 84 anos 1,70%</div>
+<div class="pa-item-plain">85 a 89 anos 0,86%</div>
+<div class="pa-item-plain">90 a 94 anos 0,36%</div>
+<div class="pa-item-plain">95 a 99 anos 0,10%</div>
+<div class="pa-item-plain">100 anos ou mais 0,03%). Masculino (16 anos 0,43%</div>
+<div class="pa-item-plain">17 anos 0,91%</div>
+<div class="pa-item-plain">18 anos 1,56%</div>
+<div class="pa-item-plain">19 anos 1,86%</div>
+<div class="pa-item-plain">20 anos 1,97%</div>
+<div class="pa-item-plain">21 a 24 anos 7,82%</div>
+<div class="pa-item-plain">25 a 29 anos 10,73%</div>
+<div class="pa-item-plain">30 a 34 anos 10,30%</div>
+<div class="pa-item-plain">35 a 39 anos 10,16%</div>
+<div class="pa-item-plain">40 a 44 anos 10,43%</div>
+<div class="pa-item-plain">45 a 49 anos 9,51%</div>
+<div class="pa-item-plain">50 a 54 anos 8,18%</div>
+<div class="pa-item-plain">55 a 59 anos 7,33%</div>
+<div class="pa-item-plain">60 a 64 anos 6,11%</div>
+<div class="pa-item-plain">65 a 69 anos 4,54%</div>
+<div class="pa-item-plain">70 a 74 anos 3,34%</div>
+<div class="pa-item-plain">75 a 79 anos 2,33%</div>
+<div class="pa-item-plain">80 a 84 anos 1,39%</div>
+<div class="pa-item-plain">85 a 89 anos 0,66%</div>
+<div class="pa-item-plain">90 a 94 anos 0,25%</div>
+<div class="pa-item-plain">95 a 99 anos 0,08%</div>
+<div class="pa-item-plain">100 anos ou mais 0,03%)</div>
+<div class="pa-cat">Grau De Instrução</div>
+<div class="pa-item-plain">Feminino (Analfabeto 4,60%</div>
+<div class="pa-item-plain">Ensino Fundamental Completo 4,00%</div>
+<div class="pa-item-plain">Ensino Fundamental Incompleto 25,68%</div>
+<div class="pa-item-plain">Ensino Médio Completo 23,89%</div>
+<div class="pa-item-plain">Ensino Médio Incompleto 18,91%</div>
+<div class="pa-item-plain">Lê e Escreve 8,18%</div>
+<div class="pa-item-plain">Superior Completo 9,24%</div>
+<div class="pa-item-plain">Superior Incompleto 5,49%</div>
+<div class="pa-item-plain">Masculino (Analfabeto 5,56%</div>
+<div class="pa-item-plain">Ensino Fundamental Completo 4,30%</div>
+<div class="pa-item-plain">Ensino Fundamental Incompleto 30,28%</div>
+<div class="pa-item-plain">Ensino Médio Completo 20,22%</div>
+<div class="pa-item-plain">Ensino Médio Incompleto 19,09%</div>
+<div class="pa-item-plain">Lê e Escreve 9,85%</div>
+<div class="pa-item-plain">Superior Completo 5,68%</div>
+<div class="pa-item-plain">Superior Incompleto 5,02%</div>
+<div class="pa-cat">Nível Econõmico</div>
+<div class="pa-item-plain">Sem rendimento (4,99%)</div>
+<div class="pa-item-plain">até 1 salário mínimo (32,38%)</div>
+<div class="pa-item-plain">Mais de 1 a 2 salários mínimos (26,98%)</div>
+<div class="pa-item-plain">Mais de 2 a 5 salários mínimos (22,74%)</div>
+<div class="pa-item-plain">Mais de 5 a 10 salários mínimos (7,90%)</div>
+<div class="pa-item-plain">Mais de 10 a 20 salários mínimos (3,48%)</div>
+<div class="pa-item-plain">Mais de 20 salários mínimos (1,53%). A soma dos percentuais poderá não totalizar exatamente 100% em razão dos arredondamentos decorrentes da apresentação dos resultados com casas decimais</div>
+<div class="pa-item"><span class="pa-label">Dados obtidos para nível econômico</span><span class="pa-value">https://cidades.ibge.gov.br/brasil/se/pesquisa/23/24304. A amostra a ser aplicada é de tamanho 1.500 (Mil e quinhentos). O nível de confiança é de 95% e a margem de erro máxima estimada considerando um modelo de amostragem aleatório simples, é de 2,53 pontos percentuais para mais ou para menos sobre os resultados encontrados no total da amostra</span></div>
+<div class="pa-cat">Fonte Dos Dados</div>
+<div class="pa-item-plain">TSE (Tribunal Superior Eleitoral) e IBGE (Instituto Brasileiro de Geografia e Estatística)</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>A pesquisa é realizada por entrevistadores, supervisor e estatístico. Os entrevistadores são devidamente treinados para conduzir as entrevistas de uma forma clara e imparcial. O supervisor desempenha o papel de garantir que a coleta dos dados seja feita de forma precisa e ética, além disso, incorporamos o acompanhamento da coleta on-line. Após os trabalhos de campo, os aplicativos de coleta dos dados são submetidos a uma fiscalização pelo supervisor e pelo estatístico, de cerca de 20% (vinte por cento) dos questionários aplicados pelos entrevistadores, para verificação das respostas. Findo esse processo os questionários vão para a organização do banco de dados em software estatístico a fim de que se prepare o relatório final de resultados para divulgação</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>Pesquisa realizada nos municípios do estado de Sergipe: Aracaju, Barra dos Coqueiros, Itaporanga d'Ajuda, Laranjeiras, Nossa Senhora do Socorro, São Cristóvão, Boquim, Estância, Itabaianinha, Salgado, Umbaúba, Lagarto, Poço Verde, Riachão do Dantas, Simão Dias, Tobias Barreto, Canindé de São Francisco, Nossa Senhora da Glória, Poço Redondo, Porto da Folha, Itabaiana, Areia Branca, Ribeirópolis, Propriá, Muribeca, Capela, Carmópolis, Rosário do Catete, Aquidabã, Nossa Senhora das Dores.</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1500</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>FLAVIO FERREIRA DA CONCEICAO</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>11/07/2026 a 14/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="ro" data-cargo="governador, senador">
+  <div class="card-header">
+    <span class="protocolo">RO043692026</span>
+    <span class="cargo">Governador, Senador</span>
+    <span class="uf">RO</span>
+    <span class="dt-registro">Registrado: 2026-07-10 20:36</span>
+  </div>
+  <div class="empresa">REAL TIME BIG DATA</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa, que consiste na realização de entrevistas com eleitores do universo a ser explorado, feitas em combinação mista por entrevistadores humanos e recursos de inteligência artificial, com a aplicação de questionário estruturado com abordagens telefônicas e digitais junto a uma amostra representativa do eleitorado em estudo. Pesquisa realizada no Estado de Rondônia (RO).</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">Representativo do eleitorado da área em estudo, elaborada em três estágios.</div>
+<div class="pa-text">No primeiro estágio, realiza-se um sorteio probabilístico dos municípios onde as entrevistas serão realizadas, pelo método PPT (Probabilidade Proporcional ao Tamanho), tomando a população eleitora de 16 anos ou mais residente nos municípios como base para essa seleção.</div>
+<div class="pa-text">No segundo estágio, efetua-se um sorteio probabilístico das localidades dentro dos municípios selecionados, também pelo método PPT (Probabilidade Proporcional ao Tamanho), considerando a população eleitora de 16 anos ou mais residente nessas localidades como base para a seleção.</div>
+<div class="pa-text">No terceiro e último estágio, dentro das localidades sorteadas, os respondentes são selecionados por meio de quotas amostrais proporcionais, em função de variáveis significativas, a saber:</div>
+<div class="pa-cat">Gênero</div>
+<div class="pa-item"><span class="pa-label">Feminino</span><span class="pa-value">51,58%</span></div>
+<div class="pa-item"><span class="pa-label">Masculino</span><span class="pa-value">48,42%</span></div>
+<div class="pa-cat">Faixa Etária</div>
+<div class="pa-item"><span class="pa-label">16 anos</span><span class="pa-value">0,90%</span></div>
+<div class="pa-item"><span class="pa-label">17 anos</span><span class="pa-value">1,20%</span></div>
+<div class="pa-item"><span class="pa-label">18 a 20 anos</span><span class="pa-value">4,96%</span></div>
+<div class="pa-item"><span class="pa-label">21 a 24 anos</span><span class="pa-value">7,44%</span></div>
+<div class="pa-item"><span class="pa-label">25 a 34 anos</span><span class="pa-value">20,22%</span></div>
+<div class="pa-item"><span class="pa-label">35 a 44 anos</span><span class="pa-value">20,52%</span></div>
+<div class="pa-item"><span class="pa-label">45 a 59 anos</span><span class="pa-value">25,51%</span></div>
+<div class="pa-item"><span class="pa-label">60 a 69 anos</span><span class="pa-value">11,40%</span></div>
+<div class="pa-item"><span class="pa-label">70 a 79 anos</span><span class="pa-value">5,68%</span></div>
+<div class="pa-item"><span class="pa-label">Superior a 79 anos</span><span class="pa-value">2,19%</span></div>
+<div class="pa-cat">Escolaridade</div>
+<div class="pa-item"><span class="pa-label">Analfabeto</span><span class="pa-value">3,76%</span></div>
+<div class="pa-item"><span class="pa-label">Lê e Escreve</span><span class="pa-value">7,06%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Fundamental Incompleto</span><span class="pa-value">24,24%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Fundamental Completo</span><span class="pa-value">5,28%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Médio Incompleto</span><span class="pa-value">18,42%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Médio Completo</span><span class="pa-value">25,04%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Superior Incompleto</span><span class="pa-value">6,31%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Superior Completo</span><span class="pa-value">9,88%</span></div>
+<div class="pa-cat">Renda Domiciliar Mensal</div>
+<div class="pa-item"><span class="pa-label">Sem rendimento</span><span class="pa-value">4,26%</span></div>
+<div class="pa-item"><span class="pa-label">Até 1/2 Salário Mínimo</span><span class="pa-value">3,46%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 1/2 a 1 Salário Mínimo</span><span class="pa-value">15,29%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 1 a 2 Salários Mínimos</span><span class="pa-value">25,98%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 2 a 5 Salários Mínimos</span><span class="pa-value">33,12%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 5 a 10 Salários Mínimos</span><span class="pa-value">12,46%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 10 a 20 Salários Mínimos</span><span class="pa-value">4,06%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 20 Salários Mínimos</span><span class="pa-value">1,38%</span></div>
+<div class="pa-item"><span class="pa-label">Observação</span><span class="pa-value">De acordo com informações do Instituto Brasileiro de Geografia e Estatística (IBGE), não há previsão de data para a divulgação do perfil econômico da população brasileira do CENSO 2022. Portanto, os dados sobre o nível econômico obtidos no Censo 2022 não podem ser utilizados, pois ainda não foram publicados</span></div>
+<div class="pa-text">Está prevista eventual ponderação para correção das variáveis sexo e idade, com base nos percentuais anteriormente mencionados, caso ocorram diferenças superiores a 3 pontos percentuais entre o previsto na amostra e a coleta de dados realizada. Para as variáveis de grau de instrução e nível econômico do entrevistado, o fator previsto para ponderação é 1 (resultados obtidos em campo). O nível de confiança estimado é de 95% e a margem de erro máxima estimada considerando um modelo de amostragem aleatório simples, é de aproximadamente 2 (dois) pontos percentuais para mais ou para menos sobre os resultados encontrados no total da amostra.</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>O trabalho de coleta de dados é acompanhado por supervisores humanos. São selecionados aleatoriamente 15% (quinze por cento) dos questionários para uma verificação posterior e, em caso de dúvida, o formulário é descartado e o responsável pela coleta chamado para esclarecimentos. Há uma equipe especializada que confere os dados à exaustão com objetivo de averiguar e aferir os resultados coletados</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>O anexo do arquivo com os bairros será realizado até o dia seguinte da divulgação conforme indicado no §7º. do art. 2º. da Resolução-TSE nº. 23.600/2019.</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1600</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>Isabela Zara Cremoneze</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>14/07/2026 a 15/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR058802026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 20:31</span>
+  </div>
+  <div class="empresa">REAL TIME BIG DATA</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa, que consiste na realização de entrevistas com eleitores do universo a ser explorado, feitas em combinação mista por entrevistadores humanos e recursos de inteligência artificial, com a aplicação de questionário estruturado com abordagens telefônicas e digitais junto a uma amostra representativa do eleitorado em estudo. Pesquisa realizada no Estado de Rondônia (RO).</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">Representativo do eleitorado da área em estudo, elaborada em três estágios.</div>
+<div class="pa-text">No primeiro estágio, realiza-se um sorteio probabilístico dos municípios onde as entrevistas serão realizadas, pelo método PPT (Probabilidade Proporcional ao Tamanho), tomando a população eleitora de 16 anos ou mais residente nos municípios como base para essa seleção.</div>
+<div class="pa-text">No segundo estágio, efetua-se um sorteio probabilístico das localidades dentro dos municípios selecionados, também pelo método PPT (Probabilidade Proporcional ao Tamanho), considerando a população eleitora de 16 anos ou mais residente nessas localidades como base para a seleção.</div>
+<div class="pa-text">No terceiro e último estágio, dentro das localidades sorteadas, os respondentes são selecionados por meio de quotas amostrais proporcionais, em função de variáveis significativas, a saber:</div>
+<div class="pa-cat">Gênero</div>
+<div class="pa-item"><span class="pa-label">Feminino</span><span class="pa-value">51,58%</span></div>
+<div class="pa-item"><span class="pa-label">Masculino</span><span class="pa-value">48,42%</span></div>
+<div class="pa-cat">Faixa Etária</div>
+<div class="pa-item"><span class="pa-label">16 anos</span><span class="pa-value">0,90%</span></div>
+<div class="pa-item"><span class="pa-label">17 anos</span><span class="pa-value">1,20%</span></div>
+<div class="pa-item"><span class="pa-label">18 a 20 anos</span><span class="pa-value">4,96%</span></div>
+<div class="pa-item"><span class="pa-label">21 a 24 anos</span><span class="pa-value">7,44%</span></div>
+<div class="pa-item"><span class="pa-label">25 a 34 anos</span><span class="pa-value">20,22%</span></div>
+<div class="pa-item"><span class="pa-label">35 a 44 anos</span><span class="pa-value">20,52%</span></div>
+<div class="pa-item"><span class="pa-label">45 a 59 anos</span><span class="pa-value">25,51%</span></div>
+<div class="pa-item"><span class="pa-label">60 a 69 anos</span><span class="pa-value">11,40%</span></div>
+<div class="pa-item"><span class="pa-label">70 a 79 anos</span><span class="pa-value">5,68%</span></div>
+<div class="pa-item"><span class="pa-label">Superior a 79 anos</span><span class="pa-value">2,19%</span></div>
+<div class="pa-cat">Escolaridade</div>
+<div class="pa-item"><span class="pa-label">Analfabeto</span><span class="pa-value">3,76%</span></div>
+<div class="pa-item"><span class="pa-label">Lê e Escreve</span><span class="pa-value">7,06%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Fundamental Incompleto</span><span class="pa-value">24,24%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Fundamental Completo</span><span class="pa-value">5,28%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Médio Incompleto</span><span class="pa-value">18,42%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Médio Completo</span><span class="pa-value">25,04%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Superior Incompleto</span><span class="pa-value">6,31%</span></div>
+<div class="pa-item"><span class="pa-label">Ensino Superior Completo</span><span class="pa-value">9,88%</span></div>
+<div class="pa-cat">Renda Domiciliar Mensal</div>
+<div class="pa-item"><span class="pa-label">Sem rendimento</span><span class="pa-value">4,26%</span></div>
+<div class="pa-item"><span class="pa-label">Até 1/2 Salário Mínimo</span><span class="pa-value">3,46%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 1/2 a 1 Salário Mínimo</span><span class="pa-value">15,29%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 1 a 2 Salários Mínimos</span><span class="pa-value">25,98%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 2 a 5 Salários Mínimos</span><span class="pa-value">33,12%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 5 a 10 Salários Mínimos</span><span class="pa-value">12,46%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 10 a 20 Salários Mínimos</span><span class="pa-value">4,06%</span></div>
+<div class="pa-item"><span class="pa-label">Mais de 20 Salários Mínimos</span><span class="pa-value">1,38%</span></div>
+<div class="pa-item"><span class="pa-label">Observação</span><span class="pa-value">De acordo com informações do Instituto Brasileiro de Geografia e Estatística (IBGE), não há previsão de data para a divulgação do perfil econômico da população brasileira do CENSO 2022. Portanto, os dados sobre o nível econômico obtidos no Censo 2022 não podem ser utilizados, pois ainda não foram publicados</span></div>
+<div class="pa-text">Está prevista eventual ponderação para correção das variáveis sexo e idade, com base nos percentuais anteriormente mencionados, caso ocorram diferenças superiores a 3 pontos percentuais entre o previsto na amostra e a coleta de dados realizada. Para as variáveis de grau de instrução e nível econômico do entrevistado, o fator previsto para ponderação é 1 (resultados obtidos em campo). O nível de confiança estimado é de 95% e a margem de erro máxima estimada considerando um modelo de amostragem aleatório simples, é de aproximadamente 2 (dois) pontos percentuais para mais ou para menos sobre os resultados encontrados no total da amostra.</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>O trabalho de coleta de dados é acompanhado por supervisores humanos. São selecionados aleatoriamente 15% (quinze por cento) dos questionários para uma verificação posterior e, em caso de dúvida, o formulário é descartado e o responsável pela coleta chamado para esclarecimentos. Há uma equipe especializada que confere os dados à exaustão com objetivo de averiguar e aferir os resultados coletados</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>O anexo do arquivo com os bairros será realizado até o dia seguinte da divulgação conforme indicado no §7º. do art. 2º. da Resolução-TSE nº. 23.600/2019.</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1600</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>Isabela Zara Cremoneze</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>14/07/2026 a 15/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="mt" data-cargo="deputado federal, deputado estadual">
+  <div class="card-header">
+    <span class="protocolo">MT085842026</span>
+    <span class="cargo">Deputado Federal, Deputado Estadual</span>
+    <span class="uf">MT</span>
+    <span class="dt-registro">Registrado: 2026-07-10 19:20</span>
+  </div>
+  <div class="empresa">NEXUS CONSULTORIA E PESQUISAS</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>A pesquisa cobrirá o município envolvendo todas regiões do município. Universo da pesquisa será dos eleitores com 16 anos ou mais. A amostra representará os eleitores do Município, selecionados em 2(dois) estágios. No primeiro estágio, os setores censitários, onde as entrevistas serão realizadas, foram selecionadas, probabilisticamente, através do método PPT - Probabilidade Proporcional ao Tamanho, tomando o número de eleitores como base para seleção. No segundo estágio, a seleção do entrevistado, dentro do setor censitário, será feita utilizando-se quotas proporcionais, e a abordagem será domiciliar.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">Utilizamos quotas proporcionais, em função das seguintes variáveis:</div>
+<div class="pa-item"><span class="pa-label">Gênero</span><span class="pa-value">FEMININO	48,45%;   MASCULINO	51,55%</span></div>
+<div class="pa-item"><span class="pa-label">Faixa etária</span><span class="pa-value">16 a 24 anos	13,89%	</span></div>
+<div class="pa-text">25 a 34 anos	18,97%	;</div>
+<div class="pa-text">35 a 44 anos	19,95%	;</div>
+<div class="pa-text">45 a 59 anos	26,26%	;</div>
+<div class="pa-text">60 anos ou mais	20,93%	;</div>
+<div class="pa-item"><span class="pa-label">Grau de instrução</span><span class="pa-value">ANALFABETO/LÊ E ESCREVE	9,3%	</span></div>
+<div class="pa-text">ENSINO FUNDAMENTAL COMPLETO	6,68%	;</div>
+<div class="pa-text">ENSINO FUNDAMENTAL INCOMPLETO	27,78%	;</div>
+<div class="pa-text">ENSINO MÉDIO COMPLETO	26,36%	;</div>
+<div class="pa-text">ENSINO MÉDIO INCOMPLETO	17,26%	;</div>
+<div class="pa-text">SUPERIOR COMPLETO	9,00%	;</div>
+<div class="pa-text">SUPERIOR INCOMPLETO	3,63%	;</div>
+<div class="pa-item"><span class="pa-label">Renda familiar</span><span class="pa-value">Até 1 salário mínimo	20,31%	</span></div>
+<div class="pa-text">Mais de 1 a 5 salários mínimos	66,39%	;</div>
+<div class="pa-text">Mais de 5 a 10 salários mínimos	9,62%	;</div>
+<div class="pa-text">Mais de 10 a 20 salários mínimos	2,52%	;</div>
+<div class="pa-text">Mais de 20 salários mínimos	1,16%	;</div>
+<div class="pa-item"><span class="pa-label">Fonte dos dados</span><span class="pa-value">TSE-Tribunal Superior Eleitoral/ abril2026; IBGE-Censo 2010-IBGE-CENSO 2022 (IBGE/Censo 2010 - Classe de rendimento nominal mensal domiciliar) </span></div>
+<div class="pa-text">sig.tse.jus.br</div>
+<div class="pa-text">)   &quot;Está prevista eventual ponderação da amostra para correção das variáveis sexo, idade, renda familiar e escolaridade com base nos percentuais anteriormente mencionados, caso ocorram diferenças entre os percentuais previstos na amostra e a coleta de dados realizada. O nível de confiança estimado é de 95% e a margem de erro máxima prevista, baseada em uma amostra aleatória simples (AAS), é de cerca de 6,8 pontos percentuais para mais ou para menos em relação aos totais da amostra.</div>
+<div class="pa-item"><span class="pa-label">Nível Econômico</span><span class="pa-value">IBGE (Censo/2010) - Observação: Conforme informações obtidas do Instituto Brasileiro de Geografia e Estatística, o IBGE, não divulgou - e não tem previsão - de data para divulgação do perfil econômico (nível econômico) da população brasileira; portanto, os dados quanto ao nível econômico obtidos no Censo 2022, não podem ser utilizados, pois não foram publicados.&quot;</span></div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>Para a realização da pesquisa, utiliza-se uma equipe de entrevistadores e supervisores credenciados devidamente treinados pela empresa para esse tipo de pesquisa. Após os trabalhos de campo, 100% dos questionários são criticados e passam por uma fiscalização de cerca de 20% (vinte por cento) dos questionários aplicados por cada entrevistador; para verificação da consistência das respostas e da adequação dos entrevistados aos parâmetros amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>#NULO#</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>200</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>AUGUSTO DA SILVA ROCHA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>04/07/2026 a 06/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR048032026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 18:24</span>
+  </div>
+  <div class="empresa">#NULO#</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa, de natureza exploratório-descritiva, operacionalizada por meio da técnica survey com									
+aplicação de questionário estruturado. A coleta de dados será realizada exclusivamente por meio de entrevistas pessoais									
+utilizando dispositivos eletrônicos (tablets) O universo é constituído pelos eleitores com 16 anos ou mais,									
+regularmente inscritos no cadastro eleitoral e residentes no estado									
+ESPIRITO  SANTO (ES)									
+Empresa Contratante e Pagante pelo trabalho:				BDC Comunicações					
+CNPJ/CPF:	23.895.081/0001-30								
+ORIGEM DO RECURSO: 		proprio							</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">A amostra prevista é de		1800	 entrevistas.</div>
+<div class="pa-text">O público-alvo da pesquisa é constituído por eleitores com 16 anos ou mais, residentes na área de abrangência do estudo.</div>
+<div class="pa-text">Para assegurar a representatividade estatística desse universo, adotou-se um delineamento amostral probabilístico por conglomerados,</div>
+<div class="pa-text">estruturado em três estágios. No primeiro estágio, procede-se ao sorteio probabilístico dos municípios integrantes da amostra, utilizando-se</div>
+<div class="pa-text">o método PPT (Probabilidade Proporcional ao Tamanho), tendo como base de ponderação a população votante com idade igual ou superior</div>
+<div class="pa-text">a 16 anos residente em cada município. No segundo estágio, a partir da relação dos municípios selecionados, realiza-se novo sorteio</div>
+<div class="pa-text">probabilístico pelo método PPT, esta feita incidente sobre setores censitários a serem visitados em campo. Esse sorteio toma como</div>
+<div class="pa-text">referência o total de habitantes residentes nesses setores, conforme dados do ultimo Censo Demográfico (2022) garantindo, assim,</div>
+<div class="pa-text">a dispersão aleatória e a cobertura estatística do território municipal, independentemente de recortes administrativos. No terceiro e último</div>
+<div class="pa-text">estágio, nos setores censitários sorteados, são selecionados os domicílios e os indivíduos a serem entrevistados, adotando-se procedimento</div>
+<div class="pa-item"><span class="pa-label">de quotas amostrais para as variáveis de controle</span><span class="pa-value">sexo, idade, renda familiar e escolaridade. O perfil amostral resultante, balizado pelas quotas</span></div>
+<div class="pa-text">estabelecidas, apresenta a seguinte composição:</div>
+<div class="pa-cat">Genero</div>
+<div class="pa-item"><span class="pa-label">MASCULINO	47%			FEMININO	53%	(consulta</span><span class="pa-value">TSE - JUN/2026)</span></div>
+<div class="pa-item"><span class="pa-label">Fonte</span><span class="pa-value">TSE- JUNHO-26</span></div>
+<div class="pa-text">FAIXA ETÁRIA</div>
+<div class="pa-text">16 A 24 Anos	11,2%</div>
+<div class="pa-text">25 a 34	18,2%</div>
+<div class="pa-text">35 a 44	20,2%</div>
+<div class="pa-text">45 a 59	26,1%</div>
+<div class="pa-text">60 ou mais	24,3%</div>
+<div class="pa-cat">Fonte</div>
+<div class="pa-item-plain">TSE- JUNHO-26</div>
+<div class="pa-text">GRAU DE INSTRUÇÃO</div>
+<div class="pa-text">Analfabeto/Lê e escreve			8,56	%</div>
+<div class="pa-text">Ensino fundamental completo/incompleto			29,95	%</div>
+<div class="pa-text">Ensino médio completo/incompleto			45,44	%</div>
+<div class="pa-text">Ensino superior completo/incompleto			16,03	%</div>
+<div class="pa-text">Invalido			0,02%</div>
+<div class="pa-cat">Fonte</div>
+<div class="pa-item-plain">TSE- JUNHO-26</div>
+<div class="pa-text">RENDA FAMILIAR</div>
+<div class="pa-text">Sem rendimento / Até 1 salário mínimo			19,45%</div>
+<div class="pa-text">De 1 a 2 salários			23,79%</div>
+<div class="pa-text">De 2 a 5 Salários			35,34%</div>
+<div class="pa-text">Mais de 5 salários			21,42%</div>
+<div class="pa-text">(S.M. - SALARIO MINIMO)</div>
+<div class="pa-item"><span class="pa-label">Fonte	https</span><span class="pa-value">//cidades.ibge.gov.br/brasil/es/pesquisa/23/24304</span></div>
+<div class="pa-text">Fonte para a malha de setores censitários, Censo 2022 (IBGE);</div>
+<div class="pa-text">A definição dos parâmetros populacionais para as cotas amostrais baseia-se nos dados do Censo Demográfico mais recente disponibilizado</div>
+<div class="pa-text">pelo IBGE, admitindo-se, nos termos do art. 2º, II, &quot;a&quot;, da Resolução TSE nº 23.600/2019, a utilização de informações defasadas quando não</div>
+<div class="pa-text">houver dados atualizados, devidamente justificada no registro da pesquisa.</div>
+<div class="pa-text">Como etapa complementar ao plano amostral, prevê-se a pós-estratificação manual, aplicável apenas se constatadas diferenças entre a</div>
+<div class="pa-text">distribuição obtida em campo e os parâmetros populacionais predefinidos para as variáveis de controle. O procedimento consiste no ajuste</div>
+<div class="pa-text">ponderado das frequências amostrais, com base na comparação entre percentuais observados e previstos, com o fim de recompor a</div>
+<div class="pa-text">proporcionalidade da amostra em relação ao universo. Tal ajuste constitui prática metodológica padrão e não decorre de qualquer fragilidade</div>
+<div class="pa-text">no processo de coleta ou seleção da amostra.</div>
+<div class="pa-item"><span class="pa-label">Margem de Erro máxima prevista é</span><span class="pa-value">2,31%	pontos percentuais para mais ou para menos, considerando um</span></div>
+<div class="pa-text">nível de confiança de 		95%	e baseada em uma amostra aleatória simples (AAS).</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>As entrevistas são realizadas por equipes devidamente treinadas e identificados, utilizando para a coleta dispositivo eletronico, 								
+as equipes serão acompanhadas por um coordenador / supervisor que atua como fiscal de campo fazendo o controle, 								
+a verificação e a fiscalização da coleta de dados. Após a coleta, a pesquisa será checada, criticada e codificada, 								
+internamente de acordo com o padrão estabelecido pela ABEP (Associação Brasileira de Empresas de Pesquisa). Todo o 								
+material será 100% criticado e 20% verificado, conforme procedimento padrão em pesquisa de opinião publica. As 								
+informações serão processadas por meio de programa especifico, para a tabulação e eleaboração dos resultados. Os dados								
+serão gerados no formato de tabelas de frequencia, e analisados criteriosamente. Ao final sera elaborado um relatorio analitico-								
+descritivo, contendo tabelas e graficos para o resultado de cada pergunta realizada no questionario, seguindo as								
+exigencias do TSE. 								
+Os dados coletados e tratados nesta pesquisa atendem às exigências da LGPD, Lei Geral de Proteção de Dados garantindo								
+ao respondente o sigilo de sua identidade e o correto tratamento de suas respostas.								</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>A área de abrangência da coleta é o ESTADO				ESPIRITO  SANTO (ES)				
+A relação das localidades e setores censitários selecionadas para aplicação da amostra será apresentada 								
+a partir do dia em que a pesquisa puder ser divulgada e até o dia seguinte, conforme expresso no 								
+art. 2º, §7º da Resolução 23.600/2019 doTSE.								</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1800</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>LINIANE GAZOLA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>13/07/2026 a 16/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="es" data-cargo="governador, senador">
+  <div class="card-header">
+    <span class="protocolo">ES018602026</span>
+    <span class="cargo">Governador, Senador</span>
+    <span class="uf">ES</span>
+    <span class="dt-registro">Registrado: 2026-07-10 18:11</span>
+  </div>
+  <div class="empresa">#NULO#</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa, de natureza exploratório-descritiva, operacionalizada por meio da técnica survey com									
+aplicação de questionário estruturado. A coleta de dados será realizada exclusivamente por meio de entrevistas pessoais									
+utilizando dispositivos eletrônicos (tablets) O universo é constituído pelos eleitores com 16 anos ou mais,									
+regularmente inscritos no cadastro eleitoral e residentes no estado									
+ESPIRITO  SANTO (ES)									
+Empresa Contratante e Pagante pelo trabalho:				BDC Comunicações					
+CNPJ/CPF:	23.895.081/0001-30								
+ORIGEM DO RECURSO: 		proprio							</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">A amostra prevista é de		1800	 entrevistas.</div>
+<div class="pa-text">O público-alvo da pesquisa é constituído por eleitores com 16 anos ou mais, residentes na área de abrangência do estudo.</div>
+<div class="pa-text">Para assegurar a representatividade estatística desse universo, adotou-se um delineamento amostral probabilístico por conglomerados,</div>
+<div class="pa-text">estruturado em três estágios. No primeiro estágio, procede-se ao sorteio probabilístico dos municípios integrantes da amostra, utilizando-se</div>
+<div class="pa-text">o método PPT (Probabilidade Proporcional ao Tamanho), tendo como base de ponderação a população votante com idade igual ou superior</div>
+<div class="pa-text">a 16 anos residente em cada município. No segundo estágio, a partir da relação dos municípios selecionados, realiza-se novo sorteio</div>
+<div class="pa-text">probabilístico pelo método PPT, esta feita incidente sobre setores censitários a serem visitados em campo. Esse sorteio toma como</div>
+<div class="pa-text">referência o total de habitantes residentes nesses setores, conforme dados do ultimo Censo Demográfico (2022) garantindo, assim,</div>
+<div class="pa-text">a dispersão aleatória e a cobertura estatística do território municipal, independentemente de recortes administrativos. No terceiro e último</div>
+<div class="pa-text">estágio, nos setores censitários sorteados, são selecionados os domicílios e os indivíduos a serem entrevistados, adotando-se procedimento</div>
+<div class="pa-item"><span class="pa-label">de quotas amostrais para as variáveis de controle</span><span class="pa-value">sexo, idade, renda familiar e escolaridade. O perfil amostral resultante, balizado pelas quotas</span></div>
+<div class="pa-text">estabelecidas, apresenta a seguinte composição:</div>
+<div class="pa-cat">Genero</div>
+<div class="pa-item"><span class="pa-label">MASCULINO	47%			FEMININO	53%	(consulta</span><span class="pa-value">TSE - JUN/2026)</span></div>
+<div class="pa-item"><span class="pa-label">Fonte</span><span class="pa-value">TSE- JUNHO-26</span></div>
+<div class="pa-text">FAIXA ETÁRIA</div>
+<div class="pa-text">16 A 24 Anos	11,2%</div>
+<div class="pa-text">25 a 34	18,2%</div>
+<div class="pa-text">35 a 44	20,2%</div>
+<div class="pa-text">45 a 59	26,1%</div>
+<div class="pa-text">60 ou mais	24,3%</div>
+<div class="pa-cat">Fonte</div>
+<div class="pa-item-plain">TSE- JUNHO-26</div>
+<div class="pa-text">GRAU DE INSTRUÇÃO</div>
+<div class="pa-text">Analfabeto/Lê e escreve			8,56	%</div>
+<div class="pa-text">Ensino fundamental completo/incompleto			29,95	%</div>
+<div class="pa-text">Ensino médio completo/incompleto			45,44	%</div>
+<div class="pa-text">Ensino superior completo/incompleto			16,03	%</div>
+<div class="pa-text">Invalido			0,02%</div>
+<div class="pa-cat">Fonte</div>
+<div class="pa-item-plain">TSE- JUNHO-26</div>
+<div class="pa-text">RENDA FAMILIAR</div>
+<div class="pa-text">Sem rendimento / Até 1 salário mínimo			19,45%</div>
+<div class="pa-text">De 1 a 2 salários			23,79%</div>
+<div class="pa-text">De 2 a 5 Salários			35,34%</div>
+<div class="pa-text">Mais de 5 salários			21,42%</div>
+<div class="pa-text">(S.M. - SALARIO MINIMO)</div>
+<div class="pa-item"><span class="pa-label">Fonte	https</span><span class="pa-value">//cidades.ibge.gov.br/brasil/es/pesquisa/23/24304</span></div>
+<div class="pa-text">Fonte para a malha de setores censitários, Censo 2022 (IBGE);</div>
+<div class="pa-text">A definição dos parâmetros populacionais para as cotas amostrais baseia-se nos dados do Censo Demográfico mais recente disponibilizado</div>
+<div class="pa-text">pelo IBGE, admitindo-se, nos termos do art. 2º, II, &quot;a&quot;, da Resolução TSE nº 23.600/2019, a utilização de informações defasadas quando não</div>
+<div class="pa-text">houver dados atualizados, devidamente justificada no registro da pesquisa.</div>
+<div class="pa-text">Como etapa complementar ao plano amostral, prevê-se a pós-estratificação manual, aplicável apenas se constatadas diferenças entre a</div>
+<div class="pa-text">distribuição obtida em campo e os parâmetros populacionais predefinidos para as variáveis de controle. O procedimento consiste no ajuste</div>
+<div class="pa-text">ponderado das frequências amostrais, com base na comparação entre percentuais observados e previstos, com o fim de recompor a</div>
+<div class="pa-text">proporcionalidade da amostra em relação ao universo. Tal ajuste constitui prática metodológica padrão e não decorre de qualquer fragilidade</div>
+<div class="pa-text">no processo de coleta ou seleção da amostra.</div>
+<div class="pa-item"><span class="pa-label">Margem de Erro máxima prevista é</span><span class="pa-value">2,31%	pontos percentuais para mais ou para menos, considerando um</span></div>
+<div class="pa-text">nível de confiança de 		95%	e baseada em uma amostra aleatória simples (AAS).</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>As entrevistas são realizadas por equipes devidamente treinadas e identificados, utilizando para a coleta dispositivo eletronico, 						
+as equipes serão acompanhadas por um coordenador / supervisor que atua como fiscal de campo fazendo o controle, 						
+a verificação e a fiscalização da coleta de dados. Após a coleta, a pesquisa será checada, criticada e codificada, 						
+internamente de acordo com o padrão estabelecido pela ABEP (Associação Brasileira de Empresas de Pesquisa). Todo o 						
+material será 100% criticado e 20% verificado, conforme procedimento padrão em pesquisa de opinião publica. As 						
+informações serão processadas por meio de programa especifico, para a tabulação e eleaboração dos resultados. Os dados						
+serão gerados no formato de tabelas de frequencia, e analisados criteriosamente. Ao final sera elaborado um relatorio analitico-						
+descritivo, contendo tabelas e graficos para o resultado de cada pergunta realizada no questionario, seguindo as						
+exigencias do TSE. 						
+Os dados coletados e tratados nesta pesquisa atendem às exigências da LGPD, Lei Geral de Proteção de Dados garantindo						
+ao respondente o sigilo de sua identidade e o correto tratamento de suas respostas.						</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>A área de abrangência da coleta é o ESTADO				ESPIRITO  SANTO (ES)				
+A relação das localidades e setores censitários selecionadas para aplicação da amostra será apresentada 								
+a partir do dia em que a pesquisa puder ser divulgada e até o dia seguinte, conforme expresso no 								
+art. 2º, §7º da Resolução 23.600/2019 doTSE.								
+</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1800</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>LINIANE GAZOLA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>13/07/2026 a 16/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="ro" data-cargo="governador, senador, deputado federal, deputado estadual">
+  <div class="card-header">
+    <span class="protocolo">RO031122026</span>
+    <span class="cargo">Governador, Senador, Deputado Federal, Deputado Estadual</span>
+    <span class="uf">RO</span>
+    <span class="dt-registro">Registrado: 2026-07-10 17:47</span>
+  </div>
+  <div class="empresa">INSTITUTO PHOENIX & ASSOCIADOS</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa em municípios representativos do Estado de Rondônia, do tipo quantitativa, com aplicação de questionário estruturado, abordagem pessoal domiciliar. O conjunto da população eleitora dos municípios com 16 anos ou mais foi tomado como universo da pesquisa.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">A amostra será representativa do eleitorado da área pesquisada e será selecionada em três etapas. Na primeira etapa realiza-se um sorteio probabilístico dos municípios onde as entrevistas serão realizadas através do método PPT (Probabilidade Proporcional ao Tamanho), considerando a população eleitora com 16 anos ou mais residente nos municípios como base para essa seleção. Na segunda etapa, faz-se um sorteio probabilístico das localidades, onde as entrevistas serão realizadas, através do método PPT (Probabilidade Proporcional ao Tamanho), tomando a população eleitora de 16 anos ou mais residente nas localidades como base para essa seleção. Na terceira etapa, a seleção do entrevistado dentro da localidade, será feita utilizando-se quotas amostrais proporcionais, em função das variáveis sexo, faixa etária, grau de instrução e renda mensal familiar.</div>
+<div class="pa-item"><span class="pa-label">Gênero</span><span class="pa-value">FEMININO 52,69% ; MASCULINO 47,31% ; </span></div>
+<div class="pa-item"><span class="pa-label">Faixa Etária</span><span class="pa-value">16 a 24 anos 14,65% ; 25 a 34 anos 20,22% ; 35 a 44 anos 20,54% ; 45 a 59 anos 25,42% ; 60 anos ou mais 19,16% </span></div>
+<div class="pa-item"><span class="pa-label">Grau de instrução</span><span class="pa-value">ANALFABETO 3,78% ; LÊ E ESCREVE 7,13% ; ENSINO FUNDAMENTAL COMPLETO 5,29% ; ENSINO FUNDAMENTAL INCOMPLETO 24,33% ; ENSINO MÉDIO COMPLETO 24,98% ; ENSINO MÉDIO INCOMPLETO 18,38% ; SUPERIOR COMPLETO 9,85% ; SUPERIOR INCOMPLETO 6,26% </span></div>
+<div class="pa-item"><span class="pa-label">Renda familiar</span><span class="pa-value">Até 1/2 salário mínimo 4,10% ; Mais de 1/2 a 1 salário mínimo 14,20% ; Mais de 1 a 2 salários mínimos 23,20% ; Mais de 2 a 5 salários mínimos 32,90% ; Mais de 5 a 10 salários mínimos 13,60% ; Mais de 10 a 20 salários mínimos 5,30% ; Mais de 20 salários mínimos 2,40% ; Sem rendimento 4,30% ; O desenho da amostra será realizado de acordo com os dados populacionais disponibilizados pelo Instituto Brasileiro de Geografia e Estatística (IBGE) referentes ao Censo 2010/2022 e TSE/TRE abril/26</span></div>
+<div class="pa-item"><span class="pa-label">Fonte</span><span class="pa-value">https://sidra.ibge.gov.br/ https://www.tse.jus.br/eleitor/estatisticas-de-eleitorado/consulta-quantitativo Para um intervalo de confiança de 95% a margem de erro máxima estimada foi de 3.1 pontos percentuais, para mais ou para menos</span></div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>Para a realização da pesquisa, utiliza-se uma equipe de entrevistadores e supervisores credenciados devidamente treinados pela empresa para esse tipo de pesquisa. Após os trabalhos de campo, 100% dos questionários são criticados e passam por uma fiscalização de cerca de 20% (vinte por cento) dos questionários aplicados por cada entrevistador; para verificação da consistência das respostas e da adequação dos entrevistados aos parâmetros amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>#NULO#</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1011</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>AUGUSTO DA SILVA ROCHA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>11/07/2026 a 14/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR054082026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 17:12</span>
+  </div>
+  <div class="empresa">INSTITUTO PHOENIX & ASSOCIADOS</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa em municípios representativos do Estado de Rondônia, do tipo quantitativa, com aplicação de questionário estruturado, abordagem pessoal domiciliar. O conjunto da população eleitora dos municípios com 16 anos ou mais foi tomado como universo da pesquisa.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">A amostra será representativa do eleitorado da área pesquisada e será selecionada em três etapas. Na primeira etapa realiza-se um sorteio probabilístico dos municípios onde as entrevistas serão realizadas através do método PPT (Probabilidade Proporcional ao Tamanho), considerando a população eleitora com 16 anos ou mais residente nos municípios como base para essa seleção. Na segunda etapa, faz-se um sorteio probabilístico das localidades, onde as entrevistas serão realizadas, através do método PPT (Probabilidade Proporcional ao Tamanho), tomando a população eleitora de 16 anos ou mais residente nas localidades como base para essa seleção. Na terceira etapa, a seleção do entrevistado dentro da localidade, será feita utilizando-se quotas amostrais proporcionais, em função das variáveis sexo, faixa etária, grau de instrução e renda mensal familiar.</div>
+<div class="pa-item"><span class="pa-label">Gênero</span><span class="pa-value">FEMININO 52,69% ; MASCULINO 47,31% ; </span></div>
+<div class="pa-item"><span class="pa-label">Faixa Etária</span><span class="pa-value">16 a 24 anos 14,65% ; 25 a 34 anos 20,22% ; 35 a 44 anos 20,54% ; 45 a 59 anos 25,42% ; 60 anos ou mais 19,16% </span></div>
+<div class="pa-item"><span class="pa-label">Grau de instrução</span><span class="pa-value">ANALFABETO 3,78% ; LÊ E ESCREVE 7,13% ; ENSINO FUNDAMENTAL COMPLETO 5,29% ; ENSINO FUNDAMENTAL INCOMPLETO 24,33% ; ENSINO MÉDIO COMPLETO 24,98% ; ENSINO MÉDIO INCOMPLETO 18,38% ; SUPERIOR COMPLETO 9,85% ; SUPERIOR INCOMPLETO 6,26% </span></div>
+<div class="pa-item"><span class="pa-label">Renda familiar</span><span class="pa-value">Até 1/2 salário mínimo 4,10% ; Mais de 1/2 a 1 salário mínimo 14,20% ; Mais de 1 a 2 salários mínimos 23,20% ; Mais de 2 a 5 salários mínimos 32,90% ; Mais de 5 a 10 salários mínimos 13,60% ; Mais de 10 a 20 salários mínimos 5,30% ; Mais de 20 salários mínimos 2,40% ; Sem rendimento 4,30% ; O desenho da amostra será realizado de acordo com os dados populacionais disponibilizados pelo Instituto Brasileiro de Geografia e Estatística (IBGE) referentes ao Censo 2010/2022 e TSE/TRE abril/26</span></div>
+<div class="pa-item"><span class="pa-label">Fonte</span><span class="pa-value">https://sidra.ibge.gov.br/ https://www.tse.jus.br/eleitor/estatisticas-de-eleitorado/consulta-quantitativo Para um intervalo de confiança de 95% a margem de erro máxima estimada foi de 3.1 pontos percentuais, para mais ou para menos</span></div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>Para a realização da pesquisa, utiliza-se uma equipe de entrevistadores e supervisores credenciados devidamente treinados pela empresa para esse tipo de pesquisa. Após os trabalhos de campo, 100% dos questionários são criticados e passam por uma fiscalização de cerca de 20% (vinte por cento) dos questionários aplicados por cada entrevistador; para verificação da consistência das respostas e da adequação dos entrevistados aos parâmetros amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>#NULO#</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>1011</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>AUGUSTO DA SILVA ROCHA</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>11/07/2026 a 14/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="br" data-cargo="presidente">
+  <div class="card-header">
+    <span class="protocolo">BR034792026</span>
+    <span class="cargo">Presidente</span>
+    <span class="uf">BR</span>
+    <span class="dt-registro">Registrado: 2026-07-10 11:41</span>
+  </div>
+  <div class="empresa">#NULO#</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa, de survey, que consiste na realização de entrevistas pessoais, domiciliares e presenciais, conduzidas por profissionais treinados, com a aplicação de questionários estruturados a uma amostra representativa da população votante de 16 anos ou mais residente no estado do Espírito Santo. O desenho amostral aplicado combina sorteio probabilístico de municípios e de setores censitários fornecidos pelo IBGE (unidades territoriais homogêneas, de tamanho similar a quadras ou blocos), dentro dos quais serão selecionadas pessoas respondentes por meio de cotas amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">O público pesquisado é composto por eleitores de 16 anos ou mais residentes na área de abrangência da pesquisa. Para produzir uma amostra representativa desse público-alvo, utilizamos um desenho amostral por conglomerados que prevê três estágios. No primeiro estágio, é feito um sorteio probabilístico de municípios para comporem a amostra por meio do método PPT (Probabilidade Proporcional ao Tamanho) a partir de suas populações votantes acima de 16 anos. Dentro da lista de municípios sorteados, no segundo estágio, é realizado um sorteio probabilístico por meio do método PPT (Probabilidade Proporcional ao Tamanho) de setores censitários a serem visitados pelos entrevistadores, sorteio que tem como base o total de habitantes residentes nos setores de acordo com dados do Censo de 2022, o que garante a dispersão aleatória e estatística da amostra dentro dos territórios municipais, independentemente de divisões administrativas. Finalmente, dentro da lista de setores censitários sorteados, no último estágio são selecionados domicílios e pessoas a serem entrevistadas utilizando-se cotas amostrais para as seguintes variáveis: sexo, idade, renda familiar e escolaridade. O perfil da amostra, definido pelas cotas previstas, é o seguinte:</div>
+<div class="pa-item"><span class="pa-label">Sexo</span><span class="pa-value">Masculino (47%); Feminino (53%)</span></div>
+<div class="pa-item"><span class="pa-label">Faixa etária</span><span class="pa-value">16-34 anos (30%); 35-59 anos (46%); 60 ou mais (24%)</span></div>
+<div class="pa-text">Renda domiciliar total, incluindo pensões, benefícios e rendimentos de trabalhos informais: Até 2 salários-mínimos (28%); Mais de 2 a 5 salários-mínimos (46%); Mais de 5 salários-mínimos (26%).</div>
+<div class="pa-item"><span class="pa-label">Nível de instrução</span><span class="pa-value">Até Fundamental completo ou médio incompleto (44%); Médio completo ou superior incompleto (38%); Superior completo ou mais (18%)</span></div>
+<div class="pa-item"><span class="pa-label">Fonte dos dados</span><span class="pa-value">para a distribuição de sexo e idade, TSE-Tribunal Superior Eleitoral - junho/2026; para a malha de setores censitários, Censo 2022 (IBGE); para a distribuição de renda domiciliar, PNADc Anual 2025, 1a visita (IBGE); e, para a distribuição de escolaridade/instrução, PNADc trimestral 1-2026 (IBGE). A PNADc é utilizada por ser a fonte oficial mais atualizada de rendimentos do país, incluindo rendimentos informais, pensões, entre outros, e corrigindo as defasagens temporais do Censo 2022, além de ser a fonte mais atualizada de nível de instrução da população com 16 anos ou mais dada ausência de atualização obrigatória da escolaridade no registro de eleitores do TSE</span></div>
+<div class="pa-text">Está prevista eventual pós-estratificação da amostra, por meio de algoritmos de calibração (rake) e modelos (MrP), para correção de estimativas e das distribuições das variáveis sexo, idade, renda familiar e escolaridade, com base nos percentuais anteriormente mencionados, caso ocorram diferenças entre os percentuais previstos na amostra e a coleta de dados realizada.</div>
+<div class="pa-text">Dentro do público-alvo anteriormente descrito, serão realizadas 804 entrevistas. O nível de confiança das estimativas é de 95% e a margem de erro máxima prevista, atendendo às diretivas do TSE e usando o cálculo para amostra aleatória simples (AAS) como aproximação, é de cerca de 3 pontos percentuais para mais ou para menos em relação aos totais da amostra.</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>As entrevistas serão realizadas por uma equipe de entrevistadores devidamente qualificada, com experiência e treinamento em pesquisa de opinião pública. Todo trabalho é feito em tablets ou outros dispositivos eletrônicos. Após a realização da coleta de dados, as entrevistas junto aos respondentes são checadas por meio de procedimentos de consistência e de georreferenciamento dos locais de aplicação em tempo real. Adicionalmente, ao longo e após os trabalhos de campo, é realizada uma fiscalização que consiste na checagem de áudio de uma amostra de 30% dos questionários aplicados para verificação das respostas e da adequação dos entrevistados aos parâmetros amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>A área de abrangência da coleta é o território do estado do Espírito Santo. A relação do número de pessoas pesquisadas nas áreas de aplicação da pesquisa, discriminadas por município, bairros e setores censitários a partir dos identificadores utilizados pelo IBGE, além da composição do eleitorado entrevistado na área de abrangência quanto a gênero, idade, grau de instrução e nível econômico, constará em anexo. O mapa com os códigos destes setores censitários e as áreas que delimitam no país todo podem ser conferidos na seguinte fonte oficial: https://censo2022.ibge.gov.br/panorama/mapas.html?localidade=&recorte=setores_censitarios</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>804</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>Margarida Maria de Mendonca</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>10/07/2026 a 13/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="es" data-cargo="governador, senador">
+  <div class="card-header">
+    <span class="protocolo">ES072112026</span>
+    <span class="cargo">Governador, Senador</span>
+    <span class="uf">ES</span>
+    <span class="dt-registro">Registrado: 2026-07-10 11:31</span>
+  </div>
+  <div class="empresa">#NULO#</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Pesquisa quantitativa, de survey, que consiste na realização de entrevistas pessoais, domiciliares e presenciais, conduzidas por profissionais treinados, com a aplicação de questionários estruturados a uma amostra representativa da população votante de 16 anos ou mais residente no estado do Espírito Santo. O desenho amostral aplicado combina sorteio probabilístico de municípios e de setores censitários fornecidos pelo IBGE (unidades territoriais homogêneas, de tamanho similar a quadras ou blocos), dentro dos quais serão selecionadas pessoas respondentes por meio de cotas amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-text">O público pesquisado é composto por eleitores de 16 anos ou mais residentes na área de abrangência da pesquisa. Para produzir uma amostra representativa desse público-alvo, utilizamos um desenho amostral por conglomerados que prevê três estágios. No primeiro estágio, é feito um sorteio probabilístico de municípios para comporem a amostra por meio do método PPT (Probabilidade Proporcional ao Tamanho) a partir de suas populações votantes acima de 16 anos. Dentro da lista de municípios sorteados, no segundo estágio, é realizado um sorteio probabilístico por meio do método PPT (Probabilidade Proporcional ao Tamanho) de setores censitários a serem visitados pelos entrevistadores, sorteio que tem como base o total de habitantes residentes nos setores de acordo com dados do Censo de 2022, o que garante a dispersão aleatória e estatística da amostra dentro dos territórios municipais, independentemente de divisões administrativas. Finalmente, dentro da lista de setores censitários sorteados, no último estágio são selecionados domicílios e pessoas a serem entrevistadas utilizando-se cotas amostrais para as seguintes variáveis: sexo, idade, renda familiar e escolaridade. O perfil da amostra, definido pelas cotas previstas, é o seguinte:</div>
+<div class="pa-item"><span class="pa-label">Sexo</span><span class="pa-value">Masculino (47%); Feminino (53%)</span></div>
+<div class="pa-item"><span class="pa-label">Faixa etária</span><span class="pa-value">16-34 anos (30%); 35-59 anos (46%); 60 ou mais (24%)</span></div>
+<div class="pa-text">Renda domiciliar total, incluindo pensões, benefícios e rendimentos de trabalhos informais: Até 2 salários-mínimos (28%); Mais de 2 a 5 salários-mínimos (46%); Mais de 5 salários-mínimos (26%).</div>
+<div class="pa-item"><span class="pa-label">Nível de instrução</span><span class="pa-value">Até Fundamental completo ou médio incompleto (44%); Médio completo ou superior incompleto (38%); Superior completo ou mais (18%)</span></div>
+<div class="pa-item"><span class="pa-label">Fonte dos dados</span><span class="pa-value">para a distribuição de sexo e idade, TSE-Tribunal Superior Eleitoral - junho/2026; para a malha de setores censitários, Censo 2022 (IBGE); para a distribuição de renda domiciliar, PNADc Anual 2025, 1a visita (IBGE); e, para a distribuição de escolaridade/instrução, PNADc trimestral 1-2026 (IBGE). A PNADc é utilizada por ser a fonte oficial mais atualizada de rendimentos do país, incluindo rendimentos informais, pensões, entre outros, e corrigindo as defasagens temporais do Censo 2022, além de ser a fonte mais atualizada de nível de instrução da população com 16 anos ou mais dada ausência de atualização obrigatória da escolaridade no registro de eleitores do TSE</span></div>
+<div class="pa-text">Está prevista eventual pós-estratificação da amostra, por meio de algoritmos de calibração (rake) e modelos (MrP), para correção de estimativas e das distribuições das variáveis sexo, idade, renda familiar e escolaridade, com base nos percentuais anteriormente mencionados, caso ocorram diferenças entre os percentuais previstos na amostra e a coleta de dados realizada.</div>
+<div class="pa-text">Dentro do público-alvo anteriormente descrito, serão realizadas 804 entrevistas. O nível de confiança das estimativas é de 95% e a margem de erro máxima prevista, atendendo às diretivas do TSE e usando o cálculo para amostra aleatória simples (AAS) como aproximação, é de cerca de 3 pontos percentuais para mais ou para menos em relação aos totais da amostra.</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>As entrevistas serão realizadas por uma equipe de entrevistadores devidamente qualificada, com experiência e treinamento em pesquisa de opinião pública. Todo trabalho é feito em tablets ou outros dispositivos eletrônicos. Após a realização da coleta de dados, as entrevistas junto aos respondentes são checadas por meio de procedimentos de consistência e de georreferenciamento dos locais de aplicação em tempo real. Adicionalmente, ao longo e após os trabalhos de campo, é realizada uma fiscalização que consiste na checagem de áudio de uma amostra de 30% dos questionários aplicados para verificação das respostas e da adequação dos entrevistados aos parâmetros amostrais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>A área de abrangência da coleta é o território do estado do Espírito Santo. A relação do número de pessoas pesquisadas nas áreas de aplicação da pesquisa, discriminadas por município, bairros e setores censitários a partir dos identificadores utilizados pelo IBGE, além da composição do eleitorado entrevistado na área de abrangência quanto a gênero, idade, grau de instrução e nível econômico, constará em anexo. O mapa com os códigos destes setores censitários e as áreas que delimitam no país todo podem ser conferidos na seguinte fonte oficial: https://censo2022.ibge.gov.br/panorama/mapas.html?localidade=&recorte=setores_censitarios</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>804</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>Margarida Maria de Mendonca</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>10/07/2026 a 13/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+<div class="card" data-uf="pe" data-cargo="governador, senador, deputado federal, deputado estadual">
+  <div class="card-header">
+    <span class="protocolo">PE094692026</span>
+    <span class="cargo">Governador, Senador, Deputado Federal, Deputado Estadual</span>
+    <span class="uf">PE</span>
+    <span class="dt-registro">Registrado: 2026-07-10 10:45</span>
+  </div>
+  <div class="empresa">IMAPE - INST. MAJORITARIO DE PESQUISAS E ESTATISTICAS</div>
+  <div class="grid">
+    <div class="field full-width">
+      <label>Metodologia</label>
+      <p>Nota 1: Pode ocorrer que o total da linha não corresponda exatamente ao somatório das células individuais devido ao arredondamento computacional. No entanto, essas diferenças são compensadas em outras linhas, sem perda da representatividade da amostra. É normal que algumas células apresentem mais entrevistas do que o registrado, pois arredondamos números para refletir a realidade da pesquisa. Por exemplo, se a distribuição resultar em 1,5 entrevistas, arredondamos para 2 entrevistas, pois não é possível realizar uma fração de entrevista. Logo, o somatório pode apresentar uma soma superior ao registrado.
+
+Nota 2: É importante destacar que o registro é exclusivamente para fins de divulgação, o que significa que uma pesquisa pode ser realizada antes ou depois da data de registro. Este requisito está claramente estabelecido no Artigo 10 da resolução. Art. 10. Na divulgação dos resultados de pesquisas, ATUAIS OU NÃO, serão obrigatoriamente informados: I - o período de realização da coleta de dados; II - a margem de erro; III - o nível de confiança; IV - o número de entrevistas; V - o nome da entidade ou da empresa que a realizou e, se for o caso, de quem a contratou; VI - o número de registro da pesquisa.
+
+Nota 3: Ao registrar uma pesquisa, é comum cometer erros de digitação ou outros equívocos. O TSE permite a correção ou exclusão de registros no sistema PesqEle até 5 dias após a data de registro. Quando uma modificação é realizada, o sistema gera um novo número de registro e atualiza a data para a data da modificação, conforme o artigo 8 da resolução. Em relação à exclusão, o sistema permite a remoção total do registro. Após os 5 dias, o sistema impede quaisquer modificações ou exclusões. É importante observar que é possível excluir um registro e refazê-lo com as mesmas informações do registro excluído, como questionário, nota fiscal, entre outros. Art. 8o O registro da pesquisa poderá ser alterado desde que não expirado o prazo de 5 (cinco) dias para a divulgação do seu resultado. § 1o A alteração de que trata o caput implica a atribuição de novo número de identificação à pesquisa e o reinício da contagem do prazo previsto no caput do art. 2o desta Resolução, a partir do recebimento das alterações com a indicação, pelo sistema, da nova data a partir da qual será permitida a divulgação da pesquisa. § 3o ...a pesquisa ser cancelada pela própria usuária ou pelo próprio usuário, sem prejuízo da apresentação de um novo registro.
+
+Nota 4: Pagante(S) Do Trabalho Em Branco: Quando o campo 'pagante' está em branco, isso ocorre porque o contratante é também o pagante da pesquisa. O sistema do TSE presume que qualquer pessoa com um mínimo de interesse verificará facilmente a origem dos recursos ao lado do nome do contratante, fora que a nota fiscal também está disponível para qualquer pessoa. A informação de pagante só é preenchida quando há duas partes envolvidas: um contratante e um pagante</p>
+    </div>
+    <div class="field full-width">
+      <label>Universo / Plano Amostral</label>
+      <div class="plano-amostral"><div class="pa-item"><span class="pa-label">I) Público Pesquisado</span><span class="pa-value">Eleitores no município de Timbaúba, estado Pernambuco. Modalidade de aplicação: entrevistas presenciais</span></div>
+<div class="pa-item"><span class="pa-label">II) Tipo de Amostra</span><span class="pa-value">A amostra é representativa do eleitorado municipal, selecionada em três estágios. No primeiro estágio, os setores censitários são sorteados de forma probabilística utilizando o método da probabilidade proporcional ao tamanho (PPT), com base na população residente de cada setor. No segundo estágio, as ruas e/ou sítios dentro dos setores sorteados são selecionados aleatoriamente para conduzir as entrevistas. No terceiro estágio, os entrevistados são escolhidos dentro das ruas e/ou sítios selecionados, utilizando cotas proporcionais aos atributos de sexo, faixa etária, grau de instrução e renda, de acordo com o perfil do eleitorado em estudo</span></div>
+<div class="pa-item"><span class="pa-label">Fonte de Dados</span><span class="pa-value">Tribunal Superior Eleitoral (TSE, July/2026) e Instituto Brasileiro de Geografia e Estatística (IBGE, CENSO 2022)</span></div>
+<div class="pa-item"><span class="pa-label">III) Tamanho da Amostra</span><span class="pa-value">600 entrevistas</span></div>
+<div class="pa-item"><span class="pa-label">IV) Ponderação</span><span class="pa-value">A ponderação é realizada considerando 53.6% para o sexo feminino e 46.4% para o sexo masculino. Em relação às faixas etárias, a distribuição é a seguinte: 12.9% de 16 a 24 anos, 19.2% de 25 a 34 anos, 20.1% de 35 a 44 anos, 25.3% de 45 a 59 anos e 22.5% com 60 anos ou mais. Para o grau de instrução, são utilizadas as seguintes categorias: 14.4% de Analfabeto/Lê e Escreve, 33.8% até o ensino fundamental, 42.2% até o ensino médio e 9.6% até a faculdade ou mais. Em relação à renda, são utilizadas as seguintes categorias: 41.2% até 1 salário mínimo, 31% de 1 a 2 salários mínimos e 27.8% acima de 2 salários mínimos. Está prevista uma ponderação para correção de variáveis de sexo e faixa etária, com base nos percentuais acima apresentados, de acordo com o previsto na amostra (TSE) e a coleta realizada. Para as variáveis de escolaridade e renda domiciliar mensal, o fator de ponderação será igual a 1, conforme os resultados obtidos em campo</span></div>
+<div class="pa-item"><span class="pa-label">V) Área Física de Realização da Pesquisa</span><span class="pa-value">A amostra será coletada em toda a extensão geográfica do município de Timbaúba, estado Pernambuco</span></div>
+<div class="pa-item"><span class="pa-label">VI) Intervalo de Confiança/Margem de Erro</span><span class="pa-value">O intervalo de confiança estimado é de 95% com uma margem de erro de 3.97% para mais ou para menos sobre os resultados encontrados no total da amostra. Este grau de confiança e margem de erro não devem ser considerados para resultados dentro de cada estrato, nem para os resultados gerados pelos cruzamentos de variáveis. Os percentuais que não totalizam 100% são devido a arredondamentos ou a múltiplas alternativas de resposta. O cálculo amostral é realizado pela proporção [estimador = p e (1-p) ou p e q)</span></div>
+<div class="pa-text">VII) O modelo de questionário aplicado está disponível em anexo (com as alternativas aleatorizadas por software e por disco).</div>
+<div class="pa-text">VIII) Na elaboração de todos os questionários emitidos pela empresa IMAPE, é implementado um sistema de aleatorização para a ordem das respostas de cada uma das perguntas. Para isso, são disponibilizados discos para cada uma das questões que necessitam de aleatoriedade. Essa prática é essencial para evitar possíveis vieses que poderiam surgir caso as respostas fossem sempre apresentadas na mesma ordem. Ao aleatorizar as respostas, garantimos que todos os participantes tenham a mesma oportunidade de encontrar cada resposta em diferentes posições do questionário. Isso contribui significativamente para minimizar qualquer influência que a ordem das perguntas possa ter sobre as respostas.</div></div>
+    </div>
+    <div class="field full-width">
+      <label>Controle de Qualidade</label>
+      <p>Para a realização da pesquisa utiliza-se uma equipe de entrevistadores e coordenadores de campo devidamente treinado para o trabalho pela empresa IMAPE. Durante a realização dos trabalhos de campo, os entrevistadores são submetidos a uma fiscalização permanente por parte dos coordenadores de campo e são realizadas checagem de 20% da amostra para atestar a realização das entrevistas e a fidedignidade dos dados, garantindo-se dessa forma, robustez na precisão dos estimadores dos parâmetros populacionais.</p>
+    </div>
+    <div class="field full-width">
+      <label>Abrangência Geográfica</label>
+      <p>Em anexo</p>
+    </div>
+    <div class="field">
+      <label>Entrevistados (universo)</label>
+      <p>600</p>
+    </div>
+    <div class="field">
+      <label>Estatístico Responsável</label>
+      <p>JERFSON BRUNO DO NASCIMENTO HONORIO</p>
+    </div>
+    <div class="field">
+      <label>Período de Coleta</label>
+      <p>11/07/2026 a 13/07/2026</p>
+    </div>
+    <div class="field">
+      <label>Data Prevista de Divulgação</label>
+      <p>16/07/2026</p>
+    </div>
+  </div>
+  <p class="no-questions">Questionário não disponível no cache local.</p>
+</div>
+</div>
+<footer>
+  Fonte: <a href="https://dadosabertos.tse.jus.br/dataset/pesquisas-eleitorais-2026" target="_blank">
+    Portal de Dados Abertos do TSE</a> ·
+  <a href="https://pesqele-divulgacao.tse.jus.br/" target="_blank">Sistema PesqEle</a>
+</footer>
+<script>
+var PAGE_SIGNATURE = null;
+
+function getFilterElements() {
+    return {
+        uf: document.getElementById('f-uf'),
+        cargo: document.getElementById('f-cargo'),
+        txt: document.getElementById('f-txt'),
+        clear: document.getElementById('btn-clear')
+    };
+}
+
+function filterCards() {
+    var elements = getFilterElements();
+    if (!elements.uf || !elements.cargo || !elements.txt) {
+        return;
+    }
+
+    var uf = elements.uf.value.toLowerCase();
+    var cargo = elements.cargo.value.toLowerCase();
+    var txt = elements.txt.value.toLowerCase();
+
+    document.querySelectorAll('.card').forEach(function(card) {
+        var cardUf = card.dataset.uf || '';
+        var cardCargo = card.dataset.cargo || '';
+        var cardTxt = card.innerText.toLowerCase();
+        var show = (!uf || cardUf === uf) &&
+                   (!cargo || cardCargo.includes(cargo)) &&
+                   (!txt || cardTxt.includes(txt));
+        card.style.display = show ? '' : 'none';
+    });
+}
+
+function bindFilters() {
+    var elements = getFilterElements();
+    if (!elements.uf || !elements.cargo || !elements.txt || !elements.clear) {
+        return;
+    }
+
+    elements.uf.addEventListener('change', filterCards);
+    elements.cargo.addEventListener('change', filterCards);
+    elements.txt.addEventListener('input', filterCards);
+    elements.clear.addEventListener('click', function() {
+        elements.uf.value = '';
+        elements.cargo.value = '';
+        elements.txt.value = '';
+        filterCards();
+    });
+}
+
+function buildSignature(response) {
+    var lm = response.headers.get('last-modified') || '';
+    var cl = response.headers.get('content-length') || '';
+    return lm + '|' + cl;
+}
+
+function checkForUpdate() {
+    var url = window.location.pathname + '?_check=' + Date.now();
+    fetch(url, { method: 'HEAD', cache: 'no-store' })
+        .then(function(response) {
+            if (!response.ok) {
+                return;
+            }
+
+            var sig = buildSignature(response);
+            if (!PAGE_SIGNATURE) {
+                PAGE_SIGNATURE = sig;
+                return;
+            }
+
+            if (sig && sig !== PAGE_SIGNATURE) {
+                window.location.reload();
+            }
+        })
+        .catch(function() {
+            // Erros de rede momentâneos são ignorados; a próxima checagem tenta de novo.
+        });
+}
+
+bindFilters();
+checkForUpdate();
+setInterval(checkForUpdate, 60000);
+</script>
+</body>
+</html>
