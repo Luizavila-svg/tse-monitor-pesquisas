@@ -132,7 +132,7 @@ def read_recent_surveys(zip_path: Path, days_back: int = DAYS_BACK) -> list[dict
 
 def extract_questions(qst_zip: Path, protocolo: str):
     """Extrai texto do PDF do questionário para o protocolo dado."""
-    if not PDF_SUPPORT or not qst_zip.exists():
+    if not PDF_SUPPORT or not qst_zip.exists() or not zipfile.is_zipfile(qst_zip):
         return None
 
     with zipfile.ZipFile(qst_zip) as zf:
